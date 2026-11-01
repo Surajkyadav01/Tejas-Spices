@@ -1,0 +1,6 @@
+{
+  "name": "Tejas Spices - Authentic Indian Spices & Fragrances",
+  "description": "Online store for authentic Indian spices, pure agarbatti, pooja samagri, and daily essentials with fast doorstep delivery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
