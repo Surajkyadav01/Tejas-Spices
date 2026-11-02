@@ -13,7 +13,8 @@ import {
   ChevronDown, 
   X,
   Menu,
-  FileText
+  ChevronRight,
+  Package
 } from 'lucide-react';
 import { STORE_INFO, CATEGORIES } from '../data/mockData';
 import { Product } from '../types';
@@ -218,13 +219,14 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">Login</span>
             </button>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Button - Shown exclusively on mobile phones, hidden on laptop/desktop */}
             <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="md:hidden p-2 text-slate-700 hover:text-emerald-600 rounded-lg"
-              aria-label="Toggle menu"
+              onClick={() => setShowMobileMenu(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              aria-label="Open mobile menu"
             >
-              {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <Menu className="w-4 h-4" />
+              <span>Menu</span>
             </button>
           </div>
         </div>
@@ -331,14 +333,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <Sparkles className="w-4 h-4 text-amber-500" />
                   <span>New products</span>
                 </button>
-
-                <button
-                  onClick={() => onSelectTab('policy')}
-                  className={`flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer ${activeTab === 'policy' ? 'text-emerald-600 font-bold' : ''}`}
-                >
-                  <FileText className="w-4 h-4 text-emerald-600" />
-                  <span>Store Policies</span>
-                </button>
               </nav>
             </div>
 
@@ -353,85 +347,312 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Slide-Over Drawer Sheet (Visible exclusively on mobile screens, completely hidden on laptop/desktop) */}
       {showMobileMenu && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3">
-          <div className="font-bold text-slate-900 text-sm">Navigation</div>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <button
-              onClick={() => {
-                onSelectTab('home');
-                onSelectCategory(null);
-                setShowMobileMenu(false);
-              }}
-              className="p-2 text-left bg-slate-50 rounded-lg font-medium text-slate-800"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => {
-                onSelectTab('hot-deals');
-                setShowMobileMenu(false);
-              }}
-              className="p-2 text-left bg-slate-50 rounded-lg font-medium text-slate-800 flex items-center gap-1 text-orange-600"
-            >
-              <Flame className="w-3.5 h-3.5" /> Hot deals
-            </button>
-            <button
-              onClick={() => {
-                onSelectTab('promotions');
-                setShowMobileMenu(false);
-              }}
-              className="p-2 text-left bg-slate-50 rounded-lg font-medium text-slate-800"
-            >
-              Promotions
-            </button>
-            <button
-              onClick={() => {
-                onSelectTab('new-products');
-                setShowMobileMenu(false);
-              }}
-              className="p-2 text-left bg-slate-50 rounded-lg font-medium text-slate-800"
-            >
-              New Products
-            </button>
-            <button
-              onClick={() => {
-                onSelectTab('policy');
-                setShowMobileMenu(false);
-              }}
-              className="p-2 text-left bg-emerald-50 rounded-lg font-bold text-emerald-800 flex items-center gap-1.5"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Policies & Terms</span>
-            </button>
-          </div>
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowMobileMenu(false)}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+          />
 
-          <div className="pt-2 border-t border-slate-100">
-            <div className="font-bold text-slate-900 text-sm mb-2">Categories</div>
-            <div className="max-h-48 overflow-y-auto space-y-1">
-              {CATEGORIES.map((cat) => (
+          {/* Drawer Panel */}
+          <div className="fixed inset-y-0 right-0 w-full max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2.5">
+                <img
+                  src={tejasLogo}
+                  alt="Tejas Spices"
+                  className="h-8 sm:h-9 w-auto object-contain"
+                />
+                <div>
+                  <div className="text-base font-black tracking-tight leading-tight flex items-center gap-1">
+                    <span className="text-slate-900">Tejas</span>
+                    <span className="text-red-600">Spices</span>
+                  </div>
+                  <div className="text-[10px] font-semibold text-emerald-600 uppercase">
+                    Mobile Menu
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowMobileMenu(false)}
+                className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* 1. Account / Login Section */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 space-y-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900">
+                      Customer Profile & Login
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">
+                      Sign in with Email & Password
+                    </div>
+                  </div>
+                </div>
+
                 <button
-                  key={cat.id}
                   onClick={() => {
-                    onSelectCategory(cat.slug);
+                    setShowMobileMenu(false);
+                    onOpenAuth();
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Login / Registration (लॉगिन करें)</span>
+                </button>
+              </div>
+
+              {/* 2. Key Featured Navigation (Hot Deals, Promotions, New Products, Home) */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">
+                  Featured Sections
+                </div>
+
+                <button
+                  onClick={() => {
+                    onSelectTab('home');
+                    onSelectCategory(null);
                     setShowMobileMenu(false);
                   }}
-                  className="w-full text-left px-2 py-1.5 text-xs text-slate-700 hover:bg-emerald-50 rounded"
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer ${
+                    activeTab === 'home' && activeCategory === null
+                      ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200'
+                      : 'hover:bg-slate-50 text-slate-800 font-semibold border border-transparent'
+                  }`}
                 >
-                  {cat.name}
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <Home className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs">Home (मुख्य पेज)</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
-              ))}
-            </div>
-          </div>
 
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-            <button onClick={onOpenTrackOrder} className="text-emerald-700 font-bold underline">
-              Track My Order
-            </button>
-            <button onClick={onOpenAdmin} className="text-slate-600 font-semibold underline">
-              Admin Portal
-            </button>
+                <button
+                  onClick={() => {
+                    onSelectTab('hot-deals');
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer ${
+                    activeTab === 'hot-deals'
+                      ? 'bg-orange-50 text-orange-900 font-bold border border-orange-200'
+                      : 'hover:bg-slate-50 text-slate-800 font-semibold border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                      <Flame className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Hot Deals (हॉट डील्स)</div>
+                      <div className="text-[10px] text-orange-600 font-medium">Daily Best Sells & Discounts</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Live
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onSelectTab('promotions');
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer ${
+                    activeTab === 'promotions'
+                      ? 'bg-blue-50 text-blue-900 font-bold border border-blue-200'
+                      : 'hover:bg-slate-50 text-slate-800 font-semibold border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <Tag className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Promotions (प्रमोशन / ऑफर्स)</div>
+                      <div className="text-[10px] text-blue-600 font-medium">Save up to 25% Off</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Offer
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onSelectTab('new-products');
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer ${
+                    activeTab === 'new-products'
+                      ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200'
+                      : 'hover:bg-slate-50 text-slate-800 font-semibold border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">New Products (नए प्रोडक्ट्स)</div>
+                      <div className="text-[10px] text-amber-600 font-medium">Fresh Harvest & Milling</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    New
+                  </span>
+                </button>
+              </div>
+
+              {/* 3. Quick Actions: Track Order, Cart, Wishlist */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">
+                  Quick Actions
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      onOpenCart();
+                    }}
+                    className="p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl text-left border border-slate-200/80 transition-colors cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs font-bold text-slate-800">Cart</span>
+                    </div>
+                    <span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {cartCount}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowMobileMenu(false);
+                      onOpenWishlist();
+                    }}
+                    className="p-3 bg-slate-50 hover:bg-emerald-50 rounded-xl text-left border border-slate-200/80 transition-colors cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-rose-500" />
+                      <span className="text-xs font-bold text-slate-800">Wishlist</span>
+                    </div>
+                    <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {wishlistCount}
+                    </span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowMobileMenu(false);
+                    onOpenTrackOrder();
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-left transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Track My Order</div>
+                      <div className="text-[10px] text-slate-500">Live doorstep delivery status</div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+
+              {/* 4. Product Categories */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-1">
+                  Product Categories ({CATEGORIES.length})
+                </div>
+
+                <div className="max-h-48 overflow-y-auto space-y-1 divide-y divide-slate-100 border border-slate-200 rounded-xl p-1 bg-slate-50/50">
+                  <button
+                    onClick={() => {
+                      onSelectCategory(null);
+                      setShowMobileMenu(false);
+                    }}
+                    className={`w-full text-left p-2 text-xs flex items-center justify-between rounded-lg cursor-pointer ${
+                      activeCategory === null
+                        ? 'bg-emerald-100 text-emerald-800 font-bold'
+                        : 'text-slate-700 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <span>All Spices & Kirana</span>
+                    <span className="text-[10px] bg-slate-200/80 px-2 py-0.5 rounded-full text-slate-600 font-semibold">
+                      {allProducts.length}
+                    </span>
+                  </button>
+
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        onSelectCategory(cat.slug);
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full text-left p-2 text-xs flex items-center justify-between rounded-lg cursor-pointer ${
+                        activeCategory === cat.slug
+                          ? 'bg-emerald-100 text-emerald-800 font-bold'
+                          : 'text-slate-700 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <span>{cat.name}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        {cat.itemCount} items
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Helpline Call & WhatsApp info */}
+              <div className="pt-2 border-t border-slate-100 p-3 bg-emerald-50/80 rounded-2xl border border-emerald-200/80 space-y-1.5 text-xs">
+                <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Call & WhatsApp Ordering</span>
+                </div>
+                <a
+                  href={`tel:${STORE_INFO.phone1}`}
+                  className="font-extrabold text-emerald-800 block text-sm hover:underline"
+                >
+                  {STORE_INFO.phone1}
+                </a>
+                <div className="text-[10px] text-slate-500">
+                  Suriyawan, Bhadohi · 8:00 AM – 9:00 PM
+                </div>
+              </div>
+
+              {/* Admin Portal link */}
+              <div className="text-center pt-1">
+                <button
+                  onClick={() => {
+                    setShowMobileMenu(false);
+                    onOpenAdmin();
+                  }}
+                  className="text-[11px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
+                >
+                  Store Admin Portal
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

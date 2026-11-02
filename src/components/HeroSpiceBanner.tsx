@@ -68,17 +68,17 @@ export const HeroSpiceBanner: React.FC<HeroSpiceBannerProps> = ({ onShopNow }) =
         </div>
 
         {/* Bottom Banner Content on top of image */}
-        <div className="absolute bottom-3 inset-x-3 z-10">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-3.5 border border-white/80 shadow-lg flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl shrink-0">
+        <div className="absolute bottom-2.5 sm:bottom-3 inset-x-2.5 sm:inset-x-3 z-10">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3.5 border border-white/80 shadow-lg flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 🌶️
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="text-xs font-black text-slate-900 truncate">
                   Farm-Fresh Indian Spices & Fragrances
                 </div>
-                <div className="text-[11px] text-slate-500 truncate">
+                <div className="text-[10px] sm:text-[11px] text-slate-500 truncate">
                   Cold-milled · Zero artificial color · Aroma locked
                 </div>
               </div>
@@ -86,10 +86,10 @@ export const HeroSpiceBanner: React.FC<HeroSpiceBannerProps> = ({ onShopNow }) =
 
             <button
               onClick={onShopNow}
-              className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer flex items-center gap-1"
+              className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer flex items-center gap-1 whitespace-nowrap"
             >
               <span>Explore</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 shrink-0" />
             </button>
           </div>
         </div>
