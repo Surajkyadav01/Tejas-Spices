@@ -12,6 +12,7 @@ import {
   Store
 } from 'lucide-react';
 import { STORE_INFO } from '../data/mockData';
+import tejasLogo from '../assets/logo.png';
 
 interface FooterProps {
   onOpenWishlist: () => void;
@@ -83,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src="/assets/aistudio/image_585fccde.png"
+                src={tejasLogo}
                 alt="Tejas Spices Official Logo"
                 className="h-10 sm:h-11 w-auto object-contain drop-shadow-xs"
               />

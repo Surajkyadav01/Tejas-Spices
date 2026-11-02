@@ -14,6 +14,7 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import { STORE_INFO } from '../data/mockData';
+import { getAssetUrl } from '../utils/assetUrl';
 
 interface AboutUsPageProps {
   onBackToHome: () => void;
@@ -106,7 +107,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               <div className="lg:col-span-5 flex justify-center">
                 <div className="w-full max-w-sm rounded-2xl overflow-hidden border border-slate-200 shadow-md">
                   <img
-                    src="/assets/categories/spices_masala.jpg"
+                    src={getAssetUrl('assets/categories/spices_masala.jpg')}
                     alt="Authentic Indian Spices"
                     className="w-full h-56 object-cover object-center"
                     loading="lazy"

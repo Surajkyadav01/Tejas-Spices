@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { STORE_INFO, CATEGORIES } from '../data/mockData';
 import { Product } from '../types';
+import tejasLogo from '../assets/logo.png';
 
 interface HeaderProps {
   searchQuery: string;
@@ -101,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-2.5 text-left group cursor-pointer"
             >
               <img
-                src="/assets/aistudio/image_585fccde.png"
+                src={tejasLogo}
                 alt="Tejas Spices Official Logo"
                 className="h-10 sm:h-11 md:h-12 w-auto object-contain drop-shadow-xs transition-transform group-hover:scale-105"
               />
