@@ -91,28 +91,28 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* 2. Main Navigation Bar */}
-      <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 py-3.5">
-        <div className="flex items-center justify-between gap-4 md:gap-8">
+      <div className="w-full px-3.5 sm:px-8 lg:px-12 xl:px-16 py-3 sm:py-3.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-8">
           {/* Brand Logo matching reference */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
             <button
               onClick={() => {
                 onSelectCategory(null);
                 onSelectTab('home');
               }}
-              className="flex items-center gap-2.5 text-left group cursor-pointer"
+              className="flex items-center gap-2 sm:gap-2.5 text-left group cursor-pointer"
             >
               <img
                 src={tejasLogo}
                 alt="Tejas Spices Official Logo"
-                className="h-10 sm:h-11 md:h-12 w-auto object-contain drop-shadow-xs transition-transform group-hover:scale-105"
+                className="h-9 sm:h-11 md:h-12 w-auto object-contain drop-shadow-xs transition-transform group-hover:scale-105"
               />
               <div>
-                <div className="text-lg sm:text-xl font-black tracking-tight leading-tight flex items-center gap-1.5">
+                <div className="text-base sm:text-xl font-black tracking-tight leading-tight flex items-center gap-1">
                   <span className="text-slate-900">Tejas</span>
                   <span className="text-red-600">Spices</span>
                 </div>
-                <div className="text-[10px] sm:text-[11px] font-bold text-emerald-600 tracking-wider uppercase leading-none mt-0.5">
+                <div className="hidden xs:block sm:block text-[10px] sm:text-[11px] font-bold text-emerald-600 tracking-wider uppercase leading-none mt-0.5 truncate">
                   Authentic Spices & Fragrances
                 </div>
               </div>
@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Action Icons matching reference */}
-          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-3 lg:gap-6 shrink-0">
             {/* Direct click to call phone */}
             <a 
               href={`tel:${STORE_INFO.phone1}`}
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Wishlist */}
             <button
               onClick={onOpenWishlist}
-              className="relative p-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
               title="Wishlist"
               aria-label="Wishlist"
             >
@@ -198,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Cart with Live Count */}
             <button
               onClick={onOpenCart}
-              className="relative p-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+              className="relative p-1.5 sm:p-2 text-slate-700 hover:text-emerald-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
               title="Shopping Cart"
               aria-label="Shopping Cart"
             >
@@ -210,23 +210,25 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* User Login */}
+            {/* User Login - Visible on all devices (Icon on mobile, Pill with label on desktop) */}
             <button
               onClick={onOpenAuth}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 text-sm font-semibold transition-colors cursor-pointer border border-transparent hover:border-emerald-200"
+              className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-full text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 text-sm font-semibold transition-colors cursor-pointer border border-transparent hover:border-emerald-200 shrink-0"
+              title="Login / My Account"
+              aria-label="Login"
             >
-              <User className="w-4 h-4 text-emerald-600" />
+              <User className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-600" />
               <span className="hidden sm:inline">Login</span>
             </button>
 
-            {/* Mobile Menu Button - Shown exclusively on mobile phones, hidden on laptop/desktop */}
+            {/* Mobile Menu Button - 3-line hamburger icon only, no extra text, perfectly sized */}
             <button
               onClick={() => setShowMobileMenu(true)}
-              className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer shrink-0 ml-0.5"
+              title="Menu"
               aria-label="Open mobile menu"
             >
-              <Menu className="w-4 h-4" />
-              <span>Menu</span>
+              <Menu className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
