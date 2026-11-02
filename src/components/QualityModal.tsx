@@ -18,8 +18,8 @@ export const QualityModal: React.FC<QualityModalProps> = ({ isOpen, onClose }) =
         <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8">
           <div className="p-6 bg-gradient-to-r from-emerald-700 to-teal-800 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl">
-                🌿
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-amber-300">
+                <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
                 <h2 className="text-lg font-bold">100% Pure & Certified Quality</h2>
