@@ -9,9 +9,8 @@ interface HeroSpiceBannerProps {
 export const HeroSpiceBanner: React.FC<HeroSpiceBannerProps> = ({ onShopNow }) => {
   const [imageError, setImageError] = useState(false);
 
-  // High quality authentic Indian spices photography
-  const primarySpiceImageUrl =
-    'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=1000&q=85';
+  // High quality authentic Indian spices photography (local fast asset)
+  const primarySpiceImageUrl = '/assets/hero_spices.jpg';
 
   return (
     <div className="relative w-full max-w-md lg:max-w-xl rounded-3xl bg-white shadow-2xl border-4 border-white/90 overflow-hidden group">

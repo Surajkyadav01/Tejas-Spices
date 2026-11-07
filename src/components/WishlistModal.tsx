@@ -10,6 +10,7 @@ interface WishlistModalProps {
   allProducts: Product[];
   onToggleWishlist: (productId: string) => void;
   onAddToCart: (product: Product) => void;
+  onSelectProduct?: (product: Product) => void;
 }
 
 export const WishlistModal: React.FC<WishlistModalProps> = ({
@@ -19,6 +20,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
   allProducts,
   onToggleWishlist,
   onAddToCart,
+  onSelectProduct,
 }) => {
   if (!isOpen) return null;
 
@@ -67,12 +69,30 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
             ) : (
               wishlistProducts.map((product) => (
                 <div key={product.id} className="py-3 flex items-center gap-3">
-                  <div className="w-14 h-14 bg-slate-50 rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                  <div
+                    onClick={() => {
+                      if (onSelectProduct) {
+                        onSelectProduct(product);
+                        onClose();
+                      }
+                    }}
+                    className="w-14 h-14 bg-slate-50 rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0 cursor-pointer"
+                  >
                     <ProductVisual product={product} size="sm" />
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold text-slate-900 truncate">{product.name}</h4>
+                  <div
+                    onClick={() => {
+                      if (onSelectProduct) {
+                        onSelectProduct(product);
+                        onClose();
+                      }
+                    }}
+                    className="flex-1 min-w-0 cursor-pointer group"
+                  >
+                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                      {product.name}
+                    </h4>
                     <div className="text-[10px] text-slate-400 mt-0.5">{product.category} · {product.unit}</div>
                     <div className="text-xs font-mono font-extrabold text-slate-900 mt-1">₹{product.price}</div>
                   </div>

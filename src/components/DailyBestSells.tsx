@@ -141,7 +141,7 @@ export const DailyBestSells: React.FC<DailyBestSellsProps> = ({
 
       {/* Main Grid: 4 Products + 1 Right Side Banner matching Screenshot 5 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 items-stretch">
-        {filteredProducts.map((product) => {
+        {filteredProducts.map((product, index) => {
           const cartItem = cart.find((item) => item.product.id === product.id);
           const quantity = cartItem ? cartItem.quantity : 0;
           const isWishlisted = wishlist.includes(product.id);
@@ -188,7 +188,7 @@ export const DailyBestSells: React.FC<DailyBestSellsProps> = ({
                 onClick={() => onSelectProduct(product)}
                 className="cursor-pointer my-2 flex justify-center items-center"
               >
-                <ProductVisual product={product} size="md" />
+                <ProductVisual product={product} size="md" priority={index === 0} />
               </div>
 
               {/* Product Info */}

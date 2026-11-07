@@ -194,7 +194,7 @@ export const CatalogSection: React.FC<CatalogSectionProps> = ({
                   onClick={() => onSelectProduct(product)}
                   className="cursor-pointer my-2 flex justify-center items-center"
                 >
-                  <ProductVisual product={product} size="md" />
+                  <ProductVisual product={product} size="md" priority={index < 2} />
                 </div>
 
                 {/* Details */}

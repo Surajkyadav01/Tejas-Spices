@@ -18,7 +18,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { TrackOrderModal } from './components/TrackOrderModal';
 import { AdminModal } from './components/AdminModal';
-import { ProductDetailModal } from './components/ProductDetailModal';
+import { ProductDetailPage } from './components/ProductDetailPage';
 import { WishlistModal } from './components/WishlistModal';
 import { AuthModal } from './components/AuthModal';
 import { QualityModal } from './components/QualityModal';
@@ -100,7 +100,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeNavTab, setActiveNavTab] = useState<string>('home');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'policy' | 'about'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'policy' | 'about' | 'product'>('home');
   const [policyTab, setPolicyTab] = useState<PolicyTabType>('shipping');
 
   // Modals
@@ -248,6 +248,12 @@ export default function App() {
     );
   };
 
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setCurrentView('product');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Filtered products for current nav tab
   let displayProducts = products;
   if (activeNavTab === 'hot-deals') {
@@ -332,12 +338,30 @@ export default function App() {
           }
         }}
         allProducts={products}
-        onSelectProduct={(p) => setSelectedProduct(p)}
+        onSelectProduct={handleSelectProduct}
       />
 
-      {/* Main Body: Full Page Switching (No popup for policy/about pages) */}
+      {/* Main Body: Full Page Switching (No popup for product/policy/about pages) */}
       <main className="flex-1 w-full">
-        {currentView === 'policy' ? (
+        {currentView === 'product' && selectedProduct ? (
+          <ProductDetailPage
+            product={selectedProduct}
+            allProducts={products}
+            cart={cart}
+            wishlist={wishlist}
+            user={user}
+            onAddToCart={handleAddToCart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onToggleWishlist={handleToggleWishlist}
+            onBackToStore={() => {
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSelectProduct={handleSelectProduct}
+            onAddReview={handleAddProductReview}
+            onOrderSuccess={handleOrderSuccess}
+          />
+        ) : currentView === 'policy' ? (
           <PolicyPage
             initialTab={policyTab}
             onBackToHome={() => {
@@ -412,7 +436,7 @@ export default function App() {
                   onAddToCart={handleAddToCart}
                   onUpdateQuantity={handleUpdateQuantity}
                   onToggleWishlist={handleToggleWishlist}
-                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onSelectProduct={handleSelectProduct}
                   onApplyCoupon={(code) => setAppliedCoupon(code)}
                 />
               </ScrollReveal>
@@ -425,7 +449,7 @@ export default function App() {
                   products={products}
                   cart={cart}
                   onAddToCart={handleAddToCart}
-                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onSelectProduct={handleSelectProduct}
                 />
               </ScrollReveal>
             )}
@@ -447,7 +471,7 @@ export default function App() {
               onAddToCart={handleAddToCart}
               onUpdateQuantity={handleUpdateQuantity}
               onToggleWishlist={handleToggleWishlist}
-              onSelectProduct={(p) => setSelectedProduct(p)}
+              onSelectProduct={handleSelectProduct}
               onClearCategory={() => setActiveCategory(null)}
               onClearSearch={() => setSearchQuery('')}
             />
@@ -558,18 +582,7 @@ export default function App() {
         onAddProduct={handleAddProduct}
       />
 
-      {/* Quick View Product Detail Modal */}
-      <ProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        cart={cart}
-        wishlist={wishlist}
-        onAddToCart={handleAddToCart}
-        onUpdateQuantity={handleUpdateQuantity}
-        onToggleWishlist={handleToggleWishlist}
-        user={user}
-        onAddReview={handleAddProductReview}
-      />
+
 
       {/* Saved Wishlist Modal */}
       <WishlistModal
@@ -579,6 +592,7 @@ export default function App() {
         allProducts={products}
         onToggleWishlist={handleToggleWishlist}
         onAddToCart={handleAddToCart}
+        onSelectProduct={handleSelectProduct}
       />
 
       {/* User Login & Account Profile Modal */}
