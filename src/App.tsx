@@ -38,7 +38,7 @@ export default function App() {
           const defaultProd = INITIAL_PRODUCTS.find((ip) => ip.id === p.id);
           return {
             ...p,
-            image: p.image || PRODUCT_REAL_IMAGES[p.id] || defaultProd?.image,
+            image: PRODUCT_REAL_IMAGES[p.id] || (p.image && p.image.startsWith('/') ? p.image.slice(1) : p.image) || defaultProd?.image,
           };
         });
       }

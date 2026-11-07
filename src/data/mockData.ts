@@ -23,7 +23,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-amber-100 to-orange-100',
     accentColor: '#d97706',
     imageVisual: 'spice_bowl',
-    imageUrl: '/assets/categories/spices_masala.jpg'
+    imageUrl: 'assets/categories/spices_masala.jpg'
   },
   {
     id: 'cat-2',
@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-red-100 to-amber-100',
     accentColor: '#b91c1c',
     imageVisual: 'whole_spices',
-    imageUrl: '/assets/categories/khada_masala.jpg'
+    imageUrl: 'assets/categories/khada_masala.jpg'
   },
   {
     id: 'cat-3',
@@ -45,7 +45,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-purple-100 to-pink-100',
     accentColor: '#7e22ce',
     imageVisual: 'incense',
-    imageUrl: '/assets/categories/agarbatti.jpg'
+    imageUrl: 'assets/categories/agarbatti.jpg'
   },
   {
     id: 'cat-4',
@@ -56,7 +56,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-teal-100',
     accentColor: '#0f766e',
     imageVisual: 'dhoop_cup',
-    imageUrl: '/assets/categories/dhoop.jpg'
+    imageUrl: 'assets/categories/dhoop.jpg'
   },
   {
     id: 'cat-5',
@@ -67,7 +67,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-yellow-100 to-amber-100',
     accentColor: '#b45309',
     imageVisual: 'camphor',
-    imageUrl: '/assets/categories/pooja_samagri.jpg'
+    imageUrl: 'assets/categories/pooja_samagri.jpg'
   },
   {
     id: 'cat-6',
@@ -78,7 +78,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-stone-100 to-orange-100',
     accentColor: '#78350f',
     imageVisual: 'dry_fruits',
-    imageUrl: '/assets/categories/dry_fruits.jpg'
+    imageUrl: 'assets/categories/dry_fruits.jpg'
   },
   {
     id: 'cat-7',
@@ -89,7 +89,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-amber-100 to-yellow-100',
     accentColor: '#ca8a04',
     imageVisual: 'oil_bottle',
-    imageUrl: '/assets/categories/oils_ghee.jpg'
+    imageUrl: 'assets/categories/oils_ghee.jpg'
   },
   {
     id: 'cat-8',
@@ -100,7 +100,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-lime-100',
     accentColor: '#15803d',
     imageVisual: 'dal_rice',
-    imageUrl: '/assets/categories/kirana_dals.jpg'
+    imageUrl: 'assets/categories/kirana_dals.jpg'
   },
   {
     id: 'cat-9',
@@ -111,7 +111,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-orange-100 to-amber-100',
     accentColor: '#ea580c',
     imageVisual: 'snacks',
-    imageUrl: '/assets/categories/snacks_namkeen.jpg'
+    imageUrl: 'assets/categories/snacks_namkeen.jpg'
   },
   {
     id: 'cat-10',
@@ -122,7 +122,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-teal-100',
     accentColor: '#0d9488',
     imageVisual: 'tea',
-    imageUrl: '/assets/categories/tea_beverages.jpg'
+    imageUrl: 'assets/categories/tea_beverages.jpg'
   }
 ];
 
@@ -138,7 +138,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 140,
     discountPercent: 14,
     unit: '1 kg Pack',
-    image: '/assets/products/basmati_rice.jpg',
+    image: 'assets/products/basmati_rice.jpg',
     rating: 4.8,
     reviewsCount: 128,
     inStock: true,
@@ -165,7 +165,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 65,
     discountPercent: 15,
     unit: '1 kg Pack',
-    image: '/assets/products/sona_masoori.jpg',
+    image: 'assets/products/sona_masoori.jpg',
     rating: 4.7,
     reviewsCount: 94,
     inStock: true,
@@ -193,7 +193,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 85,
     discountPercent: 18,
     unit: '500g Pack',
-    image: '/assets/products/toor_dal.jpg',
+    image: 'assets/products/toor_dal.jpg',
     rating: 4.9,
     reviewsCount: 142,
     inStock: true,
@@ -221,7 +221,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 78,
     discountPercent: 17,
     unit: '500g Pack',
-    image: '/assets/products/moong_dal.jpg',
+    image: 'assets/products/moong_dal.jpg',
     rating: 4.8,
     reviewsCount: 88,
     inStock: true,
@@ -251,7 +251,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 110,
     discountPercent: 20,
     unit: '200g Zipper Pouch',
-    image: '/assets/products/kashmiri_mirch.jpg',
+    image: 'assets/products/kashmiri_mirch.jpg',
     rating: 4.95,
     reviewsCount: 215,
     inStock: true,
@@ -278,7 +278,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 95,
     discountPercent: 21,
     unit: '100g Aroma Seal Pack',
-    image: '/assets/products/garam_masala.jpg',
+    image: 'assets/products/garam_masala.jpg',
     rating: 4.9,
     reviewsCount: 167,
     inStock: true,
@@ -305,7 +305,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 125,
     discountPercent: 24,
     unit: '250g Jar',
-    image: '/assets/products/haldi_turmeric.jpg',
+    image: 'assets/products/haldi_turmeric.jpg',
     rating: 4.9,
     reviewsCount: 189,
     inStock: true,
@@ -332,7 +332,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 260,
     discountPercent: 19,
     unit: '100g Vacuum Pack',
-    image: '/assets/products/elaichi.jpg',
+    image: 'assets/products/elaichi.jpg',
     rating: 4.95,
     reviewsCount: 134,
     inStock: true,
@@ -359,7 +359,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 165,
     discountPercent: 21,
     unit: '100g Kraft Pouch',
-    image: '/assets/products/dalchini.jpg',
+    image: 'assets/products/dalchini.jpg',
     rating: 4.85,
     reviewsCount: 92,
     inStock: true,
@@ -386,7 +386,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 115,
     discountPercent: 22,
     unit: '100g Pack',
-    image: '/assets/products/kali_mirch.jpg',
+    image: 'assets/products/kali_mirch.jpg',
     rating: 4.8,
     reviewsCount: 104,
     inStock: true,
@@ -415,7 +415,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 180,
     discountPercent: 19,
     unit: 'Pack of 150 Sticks',
-    image: '/assets/products/agarbatti.jpg',
+    image: 'assets/products/agarbatti.jpg',
     rating: 4.96,
     reviewsCount: 312,
     inStock: true,
@@ -443,7 +443,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 150,
     discountPercent: 20,
     unit: 'Pack of 100 Sticks',
-    image: '/assets/products/agarbatti.jpg',
+    image: 'assets/products/agarbatti.jpg',
     rating: 4.88,
     reviewsCount: 178,
     inStock: true,
@@ -470,7 +470,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 135,
     discountPercent: 18,
     unit: 'Box of 12 Cups + Stand',
-    image: '/assets/products/dhoop.jpg',
+    image: 'assets/products/dhoop.jpg',
     rating: 4.92,
     reviewsCount: 245,
     inStock: true,
@@ -499,7 +499,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 160,
     discountPercent: 22,
     unit: '100g Sealed Jar',
-    image: '/assets/products/pooja_samagri.jpg',
+    image: 'assets/products/pooja_samagri.jpg',
     rating: 4.95,
     reviewsCount: 198,
     inStock: true,
@@ -526,7 +526,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 120,
     discountPercent: 17,
     unit: 'Box of 60 Pieces',
-    image: '/assets/products/pooja_samagri.jpg',
+    image: 'assets/products/pooja_samagri.jpg',
     rating: 4.86,
     reviewsCount: 165,
     inStock: true,
@@ -555,7 +555,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 450,
     discountPercent: 20,
     unit: '250g Jar',
-    image: '/assets/products/badam.jpg',
+    image: 'assets/products/badam.jpg',
     rating: 4.94,
     reviewsCount: 156,
     inStock: true,
@@ -582,7 +582,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 290,
     discountPercent: 17,
     unit: '250g Vacuum Pack',
-    image: '/assets/products/kaju.jpg',
+    image: 'assets/products/kaju.jpg',
     rating: 4.88,
     reviewsCount: 112,
     inStock: true,
@@ -609,7 +609,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 165,
     discountPercent: 12,
     unit: '1 Litre Bottle',
-    image: '/assets/products/mustard_oil.jpg',
+    image: 'assets/products/mustard_oil.jpg',
     rating: 4.82,
     reviewsCount: 147,
     inStock: true,
@@ -636,7 +636,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 45,
     discountPercent: 15,
     unit: '200g Pack',
-    image: '/assets/products/dhania_powder.jpg',
+    image: 'assets/products/dhania_powder.jpg',
     rating: 4.75,
     reviewsCount: 82,
     inStock: true,
@@ -663,7 +663,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 72,
     discountPercent: 16,
     unit: '500g Pack',
-    image: '/assets/products/masoor_dal.jpg',
+    image: 'assets/products/masoor_dal.jpg',
     rating: 4.7,
     reviewsCount: 65,
     inStock: true,
@@ -690,7 +690,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 75,
     discountPercent: 13,
     unit: '250g Pack',
-    image: '/assets/products/namkeen.jpg',
+    image: 'assets/products/namkeen.jpg',
     rating: 4.8,
     reviewsCount: 94,
     inStock: true,
@@ -716,7 +716,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 110,
     discountPercent: 14,
     unit: '250g Jar',
-    image: '/assets/products/assam_tea.jpg',
+    image: 'assets/products/assam_tea.jpg',
     rating: 4.9,
     reviewsCount: 112,
     inStock: true,

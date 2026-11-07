@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sparkles, ShieldCheck, Check, ArrowRight, Flame } from 'lucide-react';
 import { STORE_INFO } from '../data/mockData';
+import { getAssetUrl, getAssetUrlVariants } from '../utils/assetUrl';
 
 interface HeroSpiceBannerProps {
   onShopNow: () => void;
@@ -8,9 +9,19 @@ interface HeroSpiceBannerProps {
 
 export const HeroSpiceBanner: React.FC<HeroSpiceBannerProps> = ({ onShopNow }) => {
   const [imageError, setImageError] = useState(false);
+  const [variantIndex, setVariantIndex] = useState(0);
 
-  // High quality authentic Indian spices photography (local fast asset)
-  const primarySpiceImageUrl = '/assets/hero_spices.jpg';
+  // High quality authentic Indian spices photography resolved for GitHub Pages & production
+  const variants = useMemo(() => getAssetUrlVariants('assets/hero_spices.jpg'), []);
+  const currentSrc = variants[variantIndex] || variants[0] || getAssetUrl('assets/hero_spices.jpg');
+
+  const handleImageError = () => {
+    if (variantIndex < variants.length - 1) {
+      setVariantIndex((prev) => prev + 1);
+    } else {
+      setImageError(true);
+    }
+  };
 
   return (
     <div className="relative w-full max-w-md lg:max-w-xl rounded-3xl bg-white shadow-2xl border-4 border-white/90 overflow-hidden group">
@@ -18,10 +29,11 @@ export const HeroSpiceBanner: React.FC<HeroSpiceBannerProps> = ({ onShopNow }) =
       <div className="relative h-72 sm:h-84 lg:h-96 w-full overflow-hidden bg-gradient-to-br from-amber-900 via-amber-950 to-stone-900">
         {!imageError ? (
           <img
-            src={primarySpiceImageUrl}
+            key={currentSrc}
+            src={currentSrc}
             alt="Authentic Indian Spices Assortment - Turmeric, Red Chili, Cardamom, Cinnamon"
             referrerPolicy="no-referrer"
-            onError={() => setImageError(true)}
+            onError={handleImageError}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
           />
         ) : (
