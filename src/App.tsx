@@ -17,6 +17,7 @@ import { Footer } from './components/Footer';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { TrackOrderModal } from './components/TrackOrderModal';
+import { OrderSuccessModal } from './components/OrderSuccessModal';
 import { AdminModal } from './components/AdminModal';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { WishlistModal } from './components/WishlistModal';
@@ -109,6 +110,8 @@ export default function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [trackingOrderId, setTrackingOrderId] = useState<string | undefined>(undefined);
+  const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
+  const [latestPlacedOrder, setLatestPlacedOrder] = useState<Order | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isQualityOpen, setIsQualityOpen] = useState(false);
@@ -200,7 +203,26 @@ export default function App() {
     setOrders((prev) => [newOrder, ...prev]);
     setCart([]);
     setIsCheckoutOpen(false);
+    setLatestPlacedOrder(newOrder);
     setTrackingOrderId(newOrder.orderId);
+    // Open the Order Placed Successfully popup first
+    setIsOrderSuccessOpen(true);
+  };
+
+  const handleSuccessBackToHome = () => {
+    setIsOrderSuccessOpen(false);
+    setCurrentView('home');
+    setActiveNavTab('home');
+    setActiveCategory(null);
+    setSearchQuery('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSuccessTrackOrder = () => {
+    setIsOrderSuccessOpen(false);
+    if (latestPlacedOrder) {
+      setTrackingOrderId(latestPlacedOrder.orderId);
+    }
     setIsTrackOrderOpen(true);
   };
 
@@ -568,6 +590,15 @@ export default function App() {
         onClose={() => setIsTrackOrderOpen(false)}
         orders={orders}
         currentOrderId={trackingOrderId}
+      />
+
+      {/* Order Placed Successfully Celebration Modal */}
+      <OrderSuccessModal
+        isOpen={isOrderSuccessOpen}
+        order={latestPlacedOrder}
+        onClose={() => setIsOrderSuccessOpen(false)}
+        onBackToHome={handleSuccessBackToHome}
+        onTrackOrder={handleSuccessTrackOrder}
       />
 
       {/* Store Admin Panel Modal */}
