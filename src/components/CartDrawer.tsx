@@ -78,19 +78,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-8 sm:pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      <div className="fixed inset-y-0 right-0 w-full max-w-md flex">
+        <div className="w-full h-full bg-white shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+          <div className="px-3.5 py-3.5 sm:p-5 border-b border-slate-200 flex items-center justify-between gap-2 bg-slate-50/50">
+            <div className="flex items-center gap-2 min-w-0">
+              <ShoppingBag className="w-5 h-5 text-emerald-600 shrink-0" />
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
                 {t('Your Shopping Cart', 'आपका शॉपिंग कार्ट')} ({cart.reduce((c, i) => c + i.quantity, 0)})
               </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
               aria-label="Close cart"
             >
               <X className="w-5 h-5" />
@@ -98,7 +98,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Free Delivery Bar */}
-          <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-100">
+          <div className="bg-emerald-50 px-3.5 sm:px-4 py-3 border-b border-emerald-100">
             {isFreeDelivery ? (
               <div className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
                 <span>🎉</span>
@@ -111,13 +111,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
             ) : (
               <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-                  <span>
+                <div className="text-xs font-semibold text-slate-700 flex items-center justify-between gap-2">
+                  <span className="min-w-0">
                     {t('Add', 'मुफ़्त डिलीवरी के लिए')}{' '}
                     <strong className="text-emerald-700 font-mono">₹{differenceForFree}</strong>{' '}
                     {t('more for FREE Delivery', 'और जोड़ें')}
                   </span>
-                  <span className="text-[11px] font-mono text-slate-500">{deliveryProgress}%</span>
+                  <span className="text-[11px] font-mono text-slate-500 shrink-0">{deliveryProgress}%</span>
                 </div>
                 <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                   <div
@@ -130,7 +130,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-4 divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto px-3.5 sm:px-4 py-3 divide-y divide-slate-100">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
                 <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl">
@@ -157,9 +157,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 const packLabel = item.selectedVariant?.label || item.product.unit;
                 const unitPrice = item.selectedVariant?.price ?? item.product.price;
                 return (
-                  <div key={getCartKey(item)} className="py-3 flex items-center gap-3">
+                  <div key={getCartKey(item)} className="py-3 flex items-center gap-2.5 sm:gap-3">
                     {/* Small Pack Visual */}
-                    <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
                       <ProductVisual product={item.product} size="sm" priority={true} className="!border-0" />
                     </div>
 
@@ -168,7 +168,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <h4 className="text-xs font-semibold text-slate-900 truncate tracking-tight">
                         {item.product.name}
                       </h4>
-                      <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">
+                      <div className="text-[10px] text-emerald-700 font-semibold mt-0.5 truncate">
                         {packLabel} · ₹{unitPrice} {t('each', 'प्रति पैक')}
                       </div>
                       <div className="text-xs font-bold text-slate-900 tabular-nums mt-1">
@@ -177,7 +177,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     {/* Quantity Stepper */}
-                    <div className="flex items-center gap-1.5 bg-slate-100 rounded-lg p-1 shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-100 rounded-lg p-1 shrink-0">
                       <button
                         onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1, packLabel)}
                         className="w-6 h-6 rounded bg-white text-slate-700 flex items-center justify-center hover:bg-emerald-50 transition-colors shadow-2xs cursor-pointer"
@@ -185,7 +185,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="text-xs font-bold tabular-nums px-1">
+                      <span className="text-xs font-bold tabular-nums px-1 min-w-[16px] text-center">
                         {item.quantity}
                       </span>
                       <button
@@ -200,7 +200,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     {/* Remove */}
                     <button
                       onClick={() => onRemoveItem(item.product.id, packLabel)}
-                      className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition-colors cursor-pointer shrink-0"
                       aria-label="Remove item"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -213,24 +213,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           {/* Footer Calculations & Checkout */}
           {cart.length > 0 && (
-            <div className="border-t border-slate-200 p-4 sm:p-5 bg-slate-50/70 space-y-3">
+            <div className="border-t border-slate-200 px-3.5 py-3.5 sm:p-5 bg-slate-50/70 space-y-3">
               {/* Coupon input */}
               <div>
                 {!appliedCoupon ? (
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                    <div className="relative flex-1">
+                    <div className="relative flex-1 min-w-0">
                       <Tag className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
                         placeholder={t('Coupon (e.g. TEJAS10)', 'कूपन कोड (जैसे TEJAS10)')}
-                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:border-emerald-600 uppercase font-mono bg-white"
+                        className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:border-emerald-600 uppercase font-mono bg-white"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-colors cursor-pointer"
+                      className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition-colors cursor-pointer shrink-0"
                     >
                       {t('Apply', 'लागू करें')}
                     </button>
