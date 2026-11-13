@@ -18,7 +18,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { TrackOrderModal } from './components/TrackOrderModal';
 import { OrderSuccessModal } from './components/OrderSuccessModal';
-import { AdminModal } from './components/AdminModal';
+import { AdminPage } from './components/AdminPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { WishlistModal } from './components/WishlistModal';
 import { AuthModal } from './components/AuthModal';
@@ -103,7 +103,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeNavTab, setActiveNavTab] = useState<string>('home');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'policy' | 'about' | 'product'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'policy' | 'about' | 'product' | 'admin'>('home');
   const [policyTab, setPolicyTab] = useState<PolicyTabType>('shipping');
 
   // Modals
@@ -114,7 +114,6 @@ export default function App() {
   const [trackingOrderId, setTrackingOrderId] = useState<string | undefined>(undefined);
   const [isOrderSuccessOpen, setIsOrderSuccessOpen] = useState(false);
   const [latestPlacedOrder, setLatestPlacedOrder] = useState<Order | null>(null);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isQualityOpen, setIsQualityOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -202,6 +201,11 @@ export default function App() {
       }
       if (clean === 'about') {
         setCurrentView('about');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (clean === 'admin') {
+        setCurrentView('admin');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -352,6 +356,12 @@ export default function App() {
   };
 
   // Admin handlers
+  const handleOpenAdmin = () => {
+    setCurrentView('admin');
+    pushHash('#/admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
     setOrders((prev) =>
       prev.map((ord) =>
@@ -360,6 +370,10 @@ export default function App() {
           : ord
       )
     );
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    setOrders((prev) => prev.filter((ord) => ord.orderId !== orderId));
   };
 
   const handleUpdateProductStock = (productId: string, stock: number) => {
@@ -434,7 +448,6 @@ export default function App() {
     isCartOpen ||
     isCheckoutOpen ||
     isOrderSuccessOpen ||
-    isAdminOpen ||
     isAuthOpen ||
     isTrackOrderOpen ||
     isWishlistOpen ||
@@ -443,7 +456,7 @@ export default function App() {
   return (
     <div
       className={`min-h-screen bg-white text-slate-900 flex flex-col font-sans ${
-        cart.length > 0 && currentView !== 'product' ? 'pb-20 md:pb-0' : ''
+        cart.length > 0 && currentView !== 'product' && currentView !== 'admin' ? 'pb-20 md:pb-0' : ''
       }`}
     >
       {/* 1. Header with Top Alert Bar & Sub-Nav */}
@@ -465,7 +478,7 @@ export default function App() {
           setTrackingOrderId(orders[0]?.orderId);
           setIsTrackOrderOpen(true);
         }}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
         onSelectCategory={(slug) => {
           setActiveCategory(slug);
           setSearchQuery('');
@@ -542,6 +555,19 @@ export default function App() {
             onSelectProduct={handleSelectProduct}
             onAddReview={handleAddProductReview}
             onOrderSuccess={handleOrderSuccess}
+          />
+        ) : currentView === 'admin' ? (
+          <AdminPage
+            products={products}
+            orders={orders}
+            onBackToStore={navigateHome}
+            onUpdateOrderStatus={handleUpdateOrderStatus}
+            onDeleteOrder={handleDeleteOrder}
+            onUpdateProductStock={handleUpdateProductStock}
+            onToggleProductStock={handleToggleProductStock}
+            onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
           />
         ) : currentView === 'policy' ? (
           <PolicyPage
@@ -715,7 +741,7 @@ export default function App() {
               scrollToCatalog();
             }
           }}
-          onOpenAdmin={() => setIsAdminOpen(true)}
+          onOpenAdmin={handleOpenAdmin}
           onOpenPolicy={(tab) => {
             setPolicyTab(tab);
             setCurrentView('policy');
@@ -735,7 +761,7 @@ export default function App() {
         cart={cart}
         appliedCoupon={appliedCoupon}
         onOpenCart={() => setIsCartOpen(true)}
-        hidden={anyModalOpen || currentView === 'product'}
+        hidden={anyModalOpen || currentView === 'product' || currentView === 'admin'}
       />
 
       {/* Slide-over Cart Drawer */}
@@ -779,20 +805,6 @@ export default function App() {
         onClose={() => setIsOrderSuccessOpen(false)}
         onBackToHome={handleSuccessBackToHome}
         onTrackOrder={handleSuccessTrackOrder}
-      />
-
-      {/* Store Admin Panel Modal */}
-      <AdminModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        products={products}
-        orders={orders}
-        onUpdateOrderStatus={handleUpdateOrderStatus}
-        onUpdateProductStock={handleUpdateProductStock}
-        onToggleProductStock={handleToggleProductStock}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
       />
 
       {/* Saved Wishlist Modal */}
