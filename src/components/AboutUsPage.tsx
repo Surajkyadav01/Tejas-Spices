@@ -105,12 +105,13 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               </div>
 
               <div className="lg:col-span-5 flex justify-center">
-                <div className="w-full max-w-sm rounded-2xl overflow-hidden border border-slate-200 shadow-md">
+                <div className="w-full max-w-sm rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
                   <img
-                    src={getAssetUrl('assets/categories/spices_masala.jpg')}
+                    src={getAssetUrl('assets/products/garam_masala.jpg')}
                     alt="Authentic Indian Spices"
-                    className="w-full h-56 object-cover object-center"
+                    className="w-full h-56 object-contain object-center p-3 bg-white"
                     loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="p-4 bg-emerald-900 text-white text-xs">
                     <div className="font-bold">Tejas Spices Store</div>

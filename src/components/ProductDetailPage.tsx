@@ -28,9 +28,10 @@ import {
   Phone,
   User,
   Plus,
-  Minus
+  Minus,
+  MessageCircle
 } from 'lucide-react';
-import { Product, CartItem, Order, UserProfile, ProductReview } from '../types';
+import { Product, CartItem, Order, UserProfile, ProductReview, PackVariant } from '../types';
 import { STORE_INFO } from '../data/mockData';
 import { ProductVisual } from './ProductVisual';
 import {
@@ -38,6 +39,10 @@ import {
   saveNewReview,
   toggleHelpfulVote,
 } from '../data/mockReviews';
+import { getProductVariants, getDefaultVariant, applyVariantToProduct } from '../utils/variants';
+import { buildWhatsAppOrderUrl } from '../utils/whatsapp';
+import { useLanguage } from '../utils/i18n';
+import { DynamicUpiPaymentBox } from './DynamicUpiPaymentBox';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -45,8 +50,8 @@ interface ProductDetailPageProps {
   cart: CartItem[];
   wishlist: string[];
   user: UserProfile;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (productId: string, quantity: number) => void;
+  onAddToCart: (product: Product, variant?: PackVariant) => void;
+  onUpdateQuantity: (productId: string, quantity: number, variantLabel?: string) => void;
   onToggleWishlist: (productId: string) => void;
   onBackToStore: () => void;
   onSelectProduct: (product: Product) => void;
@@ -68,6 +73,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onAddReview,
   onOrderSuccess,
 }) => {
+  const { t } = useLanguage();
+  // Pack size variants
+  const variants = useMemo(() => getProductVariants(product), [product]);
+  const [selectedVariant, setSelectedVariant] = useState<PackVariant>(() => getDefaultVariant(product));
+
   // Quantity selected on page
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [showBuyNowSection, setShowBuyNowSection] = useState(false);
@@ -81,6 +91,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [pincode, setPincode] = useState('221404');
   const [notes, setNotes] = useState('');
   const [paymentMode, setPaymentMode] = useState<'COD' | 'UPI'>('COD');
+  const [upiRef, setUpiRef] = useState('');
+  const [isUpiVerified, setIsUpiVerified] = useState(false);
+  const [buyNowError, setBuyNowError] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
 
@@ -115,19 +128,23 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [recommendProduct, setRecommendProduct] = useState<boolean>(true);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
-  // Load reviews when product changes
+  // Load reviews & reset variant when product changes
   useEffect(() => {
     if (product) {
       const prodReviews = getReviewsForProduct(product.id, product.name);
       setReviews(prodReviews);
+      setSelectedVariant(getDefaultVariant(product));
       setIsWritingReview(false);
       setSelectedRatingFilter('all');
       setSubmitSuccess(false);
       setSelectedQuantity(1);
       setShowBuyNowSection(false);
+      setUpiRef('');
+      setIsUpiVerified(false);
+      setBuyNowError('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [product.id]);
+  }, [product]);
 
   // Sync user info if user logs in
   useEffect(() => {
@@ -185,16 +202,39 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     return list;
   }, [reviews, selectedRatingFilter, sortBy]);
 
-  // Check Cart & Wishlist state
-  const cartItem = cart.find((item) => item.product.id === product.id);
+  // Check Cart & Wishlist state (matched by product ID + selected pack label)
+  const cartItem = cart.find(
+    (item) =>
+      item.product.id === product.id &&
+      (item.selectedVariant?.label || item.product.unit) === selectedVariant.label
+  );
   const currentCartQuantity = cartItem ? cartItem.quantity : 0;
   const isWishlisted = wishlist.includes(product.id);
 
-  // Financial calculations for Direct Buy Now
-  const itemSubtotal = product.price * selectedQuantity;
+  // Variant-synced pricing calculations for Direct Buy Now & Display
+  const activePrice = selectedVariant.price;
+  const activeOriginalPrice = selectedVariant.originalPrice;
+  const activeDiscountPercent = selectedVariant.discountPercent;
+  const itemSubtotal = activePrice * selectedQuantity;
   const isFreeDelivery = itemSubtotal >= STORE_INFO.freeDeliveryThreshold;
   const deliveryFee = isFreeDelivery ? 0 : STORE_INFO.deliveryFee;
   const totalAmount = itemSubtotal + deliveryFee;
+
+  const variantProductSnapshot = useMemo(
+    () => applyVariantToProduct(product, selectedVariant),
+    [product, selectedVariant]
+  );
+
+  const whatsAppQuickUrl = buildWhatsAppOrderUrl({
+    items: [{ product: variantProductSnapshot, quantity: selectedQuantity, selectedVariant }],
+    subtotal: itemSubtotal,
+    deliveryFee,
+    discount: 0,
+    total: totalAmount,
+    paymentMethod: showBuyNowSection ? paymentMode : undefined,
+    upiRef: showBuyNowSection && isUpiVerified ? upiRef : undefined,
+    customer: showBuyNowSection ? { fullName, phone, address, city, pincode, notes } : undefined,
+  });
 
   // Handle Pincode verification
   const handlePincodeCheck = (e: React.FormEvent) => {
@@ -249,8 +289,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   // Handle Direct Order Placement
   const handlePlaceDirectOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    setBuyNowError('');
     if (!fullName.trim() || !phone.trim() || !address.trim()) {
-      alert('कृपया अपना नाम, मोबाइल नंबर और पूरा पता दर्ज करें');
+      setBuyNowError(
+        t(
+          'Please enter your full name, mobile number and delivery address.',
+          'कृपया अपना नाम, मोबाइल नंबर और पूरा पता दर्ज करें।'
+        )
+      );
       return;
     }
 
@@ -260,7 +306,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       const orderId = `TS-${Math.floor(10000 + Math.random() * 90000)}`;
       const newOrder: Order = {
         orderId,
-        items: [{ product, quantity: selectedQuantity }],
+        items: [
+          {
+            product: variantProductSnapshot,
+            quantity: selectedQuantity,
+            selectedVariant,
+          },
+        ],
         subtotal: itemSubtotal,
         deliveryFee,
         discount: 0,
@@ -276,18 +328,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           notes: notes.trim(),
         },
         paymentMethod: paymentMode,
+        paymentVerified: paymentMode === 'UPI' ? isUpiVerified : false,
+        upiRef: paymentMode === 'UPI' && upiRef.trim() ? upiRef.trim() : undefined,
         createdAt: new Date().toISOString(),
         deliveryRider: {
-          name: 'Rameshwar Gurjar',
+          name: 'Rameshwar Kumar',
           phone: STORE_INFO.phone1,
-          vehicleNumber: 'RJ-36-SB-2210',
+          vehicleNumber: 'UP-66-AB-2210',
         },
       };
 
       setIsPlacingOrder(false);
       setShowBuyNowSection(false);
       onOrderSuccess(newOrder);
-    }, 800);
+    }, 650);
   };
 
   // Handle Review Submission
@@ -383,16 +437,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Store</span>
+              <span>{t('Back to Store', 'वापस जाएं')}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* 2. Main Product Container (Full-Page Layout) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             
             {/* ================= LEFT COLUMN: PRODUCT IMAGERY & TRUST ================= */}
             <div className="lg:col-span-5 space-y-5">
@@ -400,9 +454,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <div className="relative bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4 sm:p-6 flex flex-col items-center justify-center overflow-hidden">
                 {/* Floating Discount & Authentic Badges */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
-                  {product.discountPercent > 0 && (
+                  {activeDiscountPercent > 0 && (
                     <span className="bg-rose-600 text-white font-extrabold text-xs px-2.5 py-1 rounded-full shadow-xs uppercase tracking-wider">
-                      {product.discountPercent}% OFF
+                      {activeDiscountPercent}% OFF
                     </span>
                   )}
                   {product.badge && product.badge !== `Save ${product.discountPercent}%` && (
@@ -548,32 +602,80 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </div>
               </div>
 
-              {/* Price & Savings Block */}
-              <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-slate-100 space-y-3">
+              {/* Price, Pack Size Variant Selector & Savings Block */}
+              <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-slate-100 space-y-3.5">
                 <div className="flex flex-wrap items-baseline gap-3">
                   <span className="text-3xl sm:text-4xl font-black text-slate-900 tabular-nums tracking-tight">
-                    ₹{product.price}
+                    ₹{activePrice}
                   </span>
                   <span className="text-sm sm:text-base text-slate-400 line-through tabular-nums">
-                    M.R.P. ₹{product.originalPrice}
+                    M.R.P. ₹{activeOriginalPrice}
                   </span>
-                  <span className="text-xs font-bold bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Save ₹{product.originalPrice - product.price} ({product.discountPercent}% OFF)
-                  </span>
+                  {activeOriginalPrice > activePrice && (
+                    <span className="text-xs font-bold bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Save ₹{activeOriginalPrice - activePrice} ({activeDiscountPercent}% OFF)
+                    </span>
+                  )}
+                </div>
+
+                {/* Pack Size Selector Chips (250g, 500g, 1kg, 5kg...) */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-700 uppercase tracking-wider">
+                      {t('Choose Pack Size:', 'पैकेट का वज़न / साइज़ चुनें:')}
+                    </span>
+                    <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                      {selectedVariant.label}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {variants.map((variant) => {
+                      const isActive = variant.id === selectedVariant.id;
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => setSelectedVariant(variant)}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs ring-2 ring-emerald-500/25'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-400'
+                          }`}
+                        >
+                          <div className={`text-xs font-extrabold leading-tight ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                            {variant.label}
+                          </div>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span className={`text-xs font-mono font-black ${isActive ? 'text-white' : 'text-emerald-700'}`}>
+                              ₹{variant.price}
+                            </span>
+                            {variant.originalPrice > variant.price && (
+                              <span className={`text-[10px] line-through tabular-nums ${isActive ? 'text-emerald-100' : 'text-slate-400'}`}>
+                                ₹{variant.originalPrice}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="text-xs text-slate-500 font-medium">
-                  Inclusive of all taxes · Available Pack Size:{' '}
+                  {t('Inclusive of all taxes · Selected Pack:', 'सभी कर सहित · चुना गया पैक:')}{' '}
                   <span className="font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
-                    {product.unit}
+                    {selectedVariant.label}
                   </span>
                 </div>
 
                 {/* Stock Status Indicator */}
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold text-emerald-700">
-                    In Stock — Ready to dispatch from Suriyawan Store
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className={`w-2.5 h-2.5 rounded-full ${product.inStock ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                  <span className={`text-xs font-bold ${product.inStock ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {product.inStock
+                      ? t('In Stock — Ready to dispatch from Suriyawan Store', 'स्टॉक में उपलब्ध — सुरियावां स्टोर से तुरंत डिस्पैच')
+                      : t('Currently Out of Stock', 'फ़िलहाल स्टॉक समाप्त')}
                   </span>
                 </div>
               </div>
@@ -625,11 +727,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 )}
               </div>
 
-              {/* Quantity Selector & Action Buttons (Add to Cart + Buy Now) */}
+              {/* Quantity Selector & Action Buttons (Add to Cart + Buy Now + WhatsApp) */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Quantity:
+                    {t('Quantity:', 'मात्रा:')}
                   </span>
                   <div className="flex items-center border border-slate-300 rounded-xl bg-white p-1">
                     <button
@@ -653,7 +755,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     </button>
                   </div>
                   <span className="text-xs text-slate-500 font-medium">
-                    Total: <strong className="text-slate-900">₹{itemSubtotal}</strong>
+                    {t('Total:', 'कुल:')} <strong className="text-slate-900">₹{itemSubtotal}</strong>
                   </span>
                 </div>
 
@@ -662,29 +764,51 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   {/* Button 1: Add to Cart */}
                   <button
                     type="button"
+                    disabled={!product.inStock}
                     onClick={() => {
                       for (let i = 0; i < selectedQuantity; i++) {
-                        onAddToCart(product);
+                        onAddToCart(product, selectedVariant);
                       }
                     }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm py-3.5 px-6 rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-slate-300 text-white font-extrabold text-sm py-3.5 px-6 rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ShoppingCart className="w-4 h-4" />
                     <span>
-                      {currentCartQuantity > 0 ? `Add More (${currentCartQuantity} in Cart)` : 'Add to Cart / कार्ट में जोड़ें'}
+                      {!product.inStock
+                        ? t('Out of Stock', 'स्टॉक समाप्त')
+                        : currentCartQuantity > 0
+                        ? t(`Add More (${currentCartQuantity} in Cart)`, `और जोड़ें (${currentCartQuantity} कार्ट में)`)
+                        : t('Add to Cart / कार्ट में जोड़ें', 'कार्ट में जोड़ें')}
                     </span>
                   </button>
 
                   {/* Button 2: Buy Now (तुरंत खरीदें) */}
                   <button
                     type="button"
+                    disabled={!product.inStock}
                     onClick={triggerBuyNow}
-                    className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-sm py-3.5 px-6 rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer border border-amber-600/30"
+                    className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:bg-slate-200 text-slate-950 font-black text-sm py-3.5 px-6 rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer border border-amber-600/30"
                   >
                     <Zap className="w-4 h-4 fill-slate-950" />
-                    <span>Buy Now / तुरंत खरीदें</span>
+                    <span>{t('Buy Now / तुरंत खरीदें', 'तुरंत खरीदें')}</span>
                   </button>
                 </div>
+
+                {/* Quick WhatsApp Order */}
+                <a
+                  href={whatsAppQuickUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs sm:text-sm py-2.5 px-5 rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                  <span>
+                    {t(
+                      `Order ${selectedVariant.label} via WhatsApp (₹${totalAmount})`,
+                      `WhatsApp पर तुरंत ऑर्डर करें (${selectedVariant.label} · ₹${totalAmount})`
+                    )}
+                  </span>
+                </a>
               </div>
 
               {/* ================= INTEGRATED BUY NOW & DELIVERY ADDRESS FORM ================= */}
@@ -808,7 +932,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     {/* Payment Mode Selector */}
                     <div className="space-y-1.5 pt-1">
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        Select Payment Method (भुगतान का तरीका):
+                        {t('Select Payment Method (भुगतान का तरीका):', 'भुगतान का तरीका चुनें:')}
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {/* Option 1: COD */}
@@ -838,12 +962,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                           </span>
                         </div>
 
-                        {/* Option 2: UPI */}
+                        {/* Option 2: Dynamic UPI */}
                         <div
                           onClick={() => setPaymentMode('UPI')}
                           className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                             paymentMode === 'UPI'
-                              ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                              ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500/20'
                               : 'bg-white border-slate-200 hover:border-slate-300'
                           }`}
                         >
@@ -857,7 +981,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                           <span
                             className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                               paymentMode === 'UPI'
-                                ? 'border-emerald-600 bg-emerald-600 text-white text-[10px]'
+                                ? 'border-indigo-600 bg-indigo-600 text-white text-[10px]'
                                 : 'border-slate-300'
                             }`}
                           >
@@ -865,43 +989,75 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                           </span>
                         </div>
                       </div>
+
+                      {/* Dynamic UPI QR Box when UPI is selected */}
+                      {paymentMode === 'UPI' && (
+                        <DynamicUpiPaymentBox
+                          amount={totalAmount}
+                          orderHint={`${product.name} (${selectedVariant.label})`}
+                          upiRef={upiRef}
+                          onChangeUpiRef={setUpiRef}
+                          isVerified={isUpiVerified}
+                          onVerifyChange={setIsUpiVerified}
+                        />
+                      )}
                     </div>
+
+                    {/* Inline Form Validation Error */}
+                    {buyNowError && (
+                      <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{buyNowError}</span>
+                      </div>
+                    )}
 
                     {/* Pricing summary row */}
                     <div className="bg-white p-3 rounded-xl border border-amber-200/90 text-xs space-y-1">
                       <div className="flex justify-between text-slate-600">
                         <span>
-                          {product.name} (x{selectedQuantity}):
+                          {product.name} ({selectedVariant.label} x{selectedQuantity}):
                         </span>
                         <span className="font-mono font-bold text-slate-900">₹{itemSubtotal}</span>
                       </div>
                       <div className="flex justify-between text-slate-600">
-                        <span>Delivery Fee:</span>
+                        <span>{t('Delivery Fee:', 'डिलीवरी शुल्क:')}</span>
                         <span className="font-semibold text-emerald-700">
-                          {isFreeDelivery ? 'FREE Delivery' : `₹${deliveryFee}`}
+                          {isFreeDelivery ? t('FREE Delivery', 'मुफ़्त डिलीवरी') : `₹${deliveryFee}`}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-100 pt-1.5 mt-1">
-                        <span>Total Payable (कुल राशि):</span>
+                        <span>{t('Total Payable (कुल राशि):', 'कुल देय राशि:')}</span>
                         <span className="text-base text-emerald-800">₹{totalAmount}</span>
                       </div>
                     </div>
 
-                    {/* Submit Order Button */}
-                    <button
-                      type="submit"
-                      disabled={isPlacingOrder}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-sm py-3.5 px-6 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isPlacingOrder ? (
-                        <span>Processing Order...</span>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>Place Order Now / ऑर्डर कन्फर्म करें (₹{totalAmount})</span>
-                        </>
-                      )}
-                    </button>
+                    {/* Submit Order + WhatsApp Actions */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <button
+                        type="submit"
+                        disabled={isPlacingOrder}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-sm py-3.5 px-5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {isPlacingOrder ? (
+                          <span>{t('Processing Order...', 'ऑर्डर प्रक्रिया में...')}</span>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>{t(`Place Order (₹${totalAmount})`, `ऑर्डर कन्फर्म (₹${totalAmount})`)}</span>
+                          </>
+                        )}
+                      </button>
+
+                      <a
+                        href={whatsAppQuickUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-white hover:bg-emerald-50 text-emerald-700 border-2 border-emerald-500 font-bold text-xs sm:text-sm py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{t('Order via WhatsApp', 'WhatsApp से ऑर्डर')}</span>
+                      </a>
+                    </div>
                   </form>
                 </div>
               )}
@@ -1464,36 +1620,40 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </div>
 
       {/* ================= 5. MOBILE STICKY BOTTOM BAR (AMAZON/FLIPKART STYLE) ================= */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 shadow-lg">
-        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-          <div>
-            <div className="text-[11px] text-slate-500 uppercase tracking-wider font-bold">
-              Total ({selectedQuantity} item)
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3.5 py-2.5 shadow-lg">
+        <div className="flex items-center justify-between gap-2.5 max-w-lg mx-auto">
+          <div className="min-w-0">
+            <div className="text-[10px] text-slate-500 font-bold truncate">
+              {selectedVariant.label} · x{selectedQuantity}
             </div>
-            <div className="text-lg font-black text-slate-900 tabular-nums leading-none">
+            <div className="text-base font-black text-slate-900 tabular-nums leading-none mt-0.5">
               ₹{itemSubtotal}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-1 justify-end">
+          <div className="flex items-center gap-2 shrink-0">
             <button
+              type="button"
+              disabled={!product.inStock}
               onClick={() => {
                 for (let i = 0; i < selectedQuantity; i++) {
-                  onAddToCart(product);
+                  onAddToCart(product, selectedVariant);
                 }
               }}
-              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              <span>Add to Cart</span>
+              <span>{t('Add to Cart', 'कार्ट में जोड़ें')}</span>
             </button>
 
             <button
+              type="button"
+              disabled={!product.inStock}
               onClick={triggerBuyNow}
-              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs border border-amber-600/30"
+              className="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-200 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs border border-amber-600/30"
             >
               <Zap className="w-3.5 h-3.5 fill-slate-950" />
-              <span>Buy Now</span>
+              <span>{t('Buy Now', 'तुरंत खरीदें')}</span>
             </button>
           </div>
         </div>

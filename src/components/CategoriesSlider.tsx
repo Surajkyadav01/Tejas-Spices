@@ -1,9 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { CATEGORIES } from '../data/mockData';
+import { Product } from '../types';
 import { CategoryBadgeVisual } from './CategoryBadgeVisual';
+import { useLanguage, CATEGORY_HINDI_NAMES } from '../utils/i18n';
 
 interface CategoriesSliderProps {
+  products: Product[];
   activeCategory: string | null;
   onSelectCategory: (categorySlug: string | null) => void;
 }
@@ -18,21 +21,26 @@ interface SliderItem {
 }
 
 export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
+  products,
   activeCategory,
   onSelectCategory,
 }) => {
+  const { lang, t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
-  // Categories list without "All Items" (as requested by user)
-  const categoryItems: SliderItem[] = CATEGORIES.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-    slug: cat.slug,
-    itemCountText: `${cat.itemCount} Items`,
-    imageVisual: cat.imageVisual,
-    imageUrl: cat.imageUrl,
-  }));
+  // Live computed item count per category from actual products array
+  const categoryItems: SliderItem[] = CATEGORIES.map((cat) => {
+    const liveCount = products.filter((p) => p.categorySlug === cat.slug).length;
+    return {
+      id: cat.id,
+      name: lang === 'hi' ? CATEGORY_HINDI_NAMES[cat.slug] || cat.name : cat.name,
+      slug: cat.slug,
+      itemCountText: `${liveCount} ${t(liveCount === 1 ? 'Item' : 'Items', 'प्रोडक्ट')}`,
+      imageVisual: cat.imageVisual,
+      imageUrl: cat.imageUrl,
+    };
+  });
 
   // Quadruple items to guarantee seamless infinite looping across all screen sizes
   const displayItems = [
@@ -46,7 +54,7 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
-    const speed = 35; // Medium, readable, smooth speed
+    const speed = 35;
 
     const step = (time: number) => {
       const delta = (time - lastTime) / 1000;
@@ -58,7 +66,6 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
 
         if (singleSetWidth > 0) {
           container.scrollLeft += speed * delta;
-          // When 1 full cycle has passed, seamlessly reset by subtracting one cycle width
           if (container.scrollLeft >= singleSetWidth) {
             container.scrollLeft -= singleSetWidth;
           }
@@ -99,7 +106,7 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
       {/* Section Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-          Explore Categories
+          {t('Explore Categories', 'कैटेगरी के अनुसार चुनें')}
         </h2>
 
         {/* Carousel Navigation Arrows */}
@@ -123,7 +130,7 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
         </div>
       </div>
 
-      {/* Horizontal Carousel with Smooth Medium-Speed Sliding */}
+      {/* Horizontal Carousel */}
       <div
         ref={scrollRef}
         onMouseDown={() => {
@@ -148,13 +155,13 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
             <button
               key={`${item.id}-${index}`}
               onClick={() => onSelectCategory(item.slug)}
-              className={`group shrink-0 w-28 sm:w-36 rounded-2xl p-3.5 flex flex-col items-center justify-between text-center transition-all duration-200 cursor-pointer border ${
+              className={`group shrink-0 w-32 sm:w-40 rounded-2xl p-3 flex flex-col items-center justify-between text-center transition-all duration-200 cursor-pointer border ${
                 isActive
                   ? 'bg-emerald-50/90 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
                   : 'bg-white border-slate-200/90 hover:border-emerald-400 hover:shadow-md'
               }`}
             >
-              <div className="mb-2.5">
+              <div className="mb-2">
                 <CategoryBadgeVisual
                   imageVisual={item.imageVisual}
                   name={item.name}
@@ -172,7 +179,7 @@ export const CategoriesSlider: React.FC<CategoriesSliderProps> = ({
                 >
                   {item.name}
                 </span>
-                <span className="block text-[10px] text-slate-400 font-medium mt-1 font-mono">
+                <span className="block text-[10px] text-slate-500 font-semibold mt-1 font-mono">
                   {item.itemCountText}
                 </span>
               </div>

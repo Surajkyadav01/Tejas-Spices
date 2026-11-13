@@ -1,3 +1,11 @@
+export interface PackVariant {
+  id: string;
+  label: string;
+  price: number;
+  originalPrice: number;
+  discountPercent: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -8,6 +16,7 @@ export interface Product {
   originalPrice: number;
   discountPercent: number;
   unit: string;
+  variants?: PackVariant[];
   rating: number;
   reviewsCount: number;
   inStock: boolean;
@@ -33,6 +42,7 @@ export interface Product {
 export interface Category {
   id: string;
   name: string;
+  hindiName?: string;
   slug: string;
   iconName: string;
   itemCount: number;
@@ -45,6 +55,7 @@ export interface Category {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedVariant?: PackVariant;
 }
 
 export type OrderStatus = 'placed' | 'packed' | 'dispatched' | 'out_for_delivery' | 'delivered';
@@ -67,6 +78,8 @@ export interface Order {
     notes?: string;
   };
   paymentMethod: 'COD' | 'UPI';
+  paymentVerified?: boolean;
+  upiRef?: string;
   createdAt: string;
   deliveryRider: {
     name: string;

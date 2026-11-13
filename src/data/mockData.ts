@@ -23,7 +23,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-amber-100 to-orange-100',
     accentColor: '#d97706',
     imageVisual: 'spice_bowl',
-    imageUrl: 'assets/categories/spices_masala.jpg'
+    imageUrl: 'assets/products/kashmiri_mirch.jpg'
   },
   {
     id: 'cat-2',
@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-red-100 to-amber-100',
     accentColor: '#b91c1c',
     imageVisual: 'whole_spices',
-    imageUrl: 'assets/categories/khada_masala.jpg'
+    imageUrl: 'assets/products/elaichi.jpg'
   },
   {
     id: 'cat-3',
@@ -45,7 +45,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-purple-100 to-pink-100',
     accentColor: '#7e22ce',
     imageVisual: 'incense',
-    imageUrl: 'assets/categories/agarbatti.jpg'
+    imageUrl: 'assets/products/agarbatti.jpg'
   },
   {
     id: 'cat-4',
@@ -56,7 +56,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-teal-100',
     accentColor: '#0f766e',
     imageVisual: 'dhoop_cup',
-    imageUrl: 'assets/categories/dhoop.jpg'
+    imageUrl: 'assets/products/dhoop.jpg'
   },
   {
     id: 'cat-5',
@@ -67,7 +67,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-yellow-100 to-amber-100',
     accentColor: '#b45309',
     imageVisual: 'camphor',
-    imageUrl: 'assets/categories/pooja_samagri.jpg'
+    imageUrl: 'assets/products/pooja_samagri.jpg'
   },
   {
     id: 'cat-6',
@@ -78,7 +78,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-stone-100 to-orange-100',
     accentColor: '#78350f',
     imageVisual: 'dry_fruits',
-    imageUrl: 'assets/categories/dry_fruits.jpg'
+    imageUrl: 'assets/products/badam.jpg'
   },
   {
     id: 'cat-7',
@@ -89,7 +89,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-amber-100 to-yellow-100',
     accentColor: '#ca8a04',
     imageVisual: 'oil_bottle',
-    imageUrl: 'assets/categories/oils_ghee.jpg'
+    imageUrl: 'assets/products/mustard_oil.jpg'
   },
   {
     id: 'cat-8',
@@ -100,7 +100,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-lime-100',
     accentColor: '#15803d',
     imageVisual: 'dal_rice',
-    imageUrl: 'assets/categories/kirana_dals.jpg'
+    imageUrl: 'assets/products/toor_dal.jpg'
   },
   {
     id: 'cat-9',
@@ -111,7 +111,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-orange-100 to-amber-100',
     accentColor: '#ea580c',
     imageVisual: 'snacks',
-    imageUrl: 'assets/categories/snacks_namkeen.jpg'
+    imageUrl: 'assets/products/namkeen.jpg'
   },
   {
     id: 'cat-10',
@@ -122,7 +122,7 @@ export const CATEGORIES: Category[] = [
     bgGradient: 'from-emerald-100 to-teal-100',
     accentColor: '#0d9488',
     imageVisual: 'tea',
-    imageUrl: 'assets/categories/tea_beverages.jpg'
+    imageUrl: 'assets/products/assam_tea.jpg'
   }
 ];
 
@@ -443,7 +443,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 150,
     discountPercent: 20,
     unit: 'Pack of 100 Sticks',
-    image: 'assets/products/agarbatti.jpg',
+    image: 'assets/products/kesar_agarbatti.jpg',
     rating: 4.88,
     reviewsCount: 178,
     inStock: true,
@@ -526,7 +526,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     originalPrice: 120,
     discountPercent: 17,
     unit: 'Box of 60 Pieces',
-    image: 'assets/products/pooja_samagri.jpg',
+    image: 'assets/products/diya_batti.jpg',
     rating: 4.86,
     reviewsCount: 165,
     inStock: true,

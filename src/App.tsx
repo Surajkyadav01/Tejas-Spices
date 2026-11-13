@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { Product, CartItem, Order, UserProfile, OrderStatus } from './types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Product, CartItem, Order, UserProfile, OrderStatus, PackVariant } from './types';
 import { STORE_INFO, CATEGORIES, INITIAL_PRODUCTS, INITIAL_ORDERS } from './data/mockData';
 import { Header } from './components/Header';
 import { HeroBanners } from './components/HeroBanners';
@@ -27,6 +27,8 @@ import { PRODUCT_REAL_IMAGES } from './components/ProductVisual';
 import { ScrollReveal } from './components/ScrollReveal';
 import { PolicyPage, PolicyTabType } from './components/PolicyPage';
 import { AboutUsPage } from './components/AboutUsPage';
+import { MobileStickyCartBar } from './components/MobileStickyCartBar';
+import { getDefaultVariant, applyVariantToProduct, getCartKey } from './utils/variants';
 
 export default function App() {
   // Persistent Products with photographic image hydration
@@ -158,35 +160,157 @@ export default function App() {
     }
   }, [user]);
 
-  // Cart operations
-  const handleAddToCart = (product: Product) => {
+  // Scroll helper
+  const scrollToCatalog = useCallback(() => {
+    setTimeout(() => {
+      const el = document.getElementById('catalog-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 60);
+  }, []);
+
+  // Push / update hash cleanly so phone Back button navigates instead of exiting site
+  const pushHash = useCallback((nextHash: string) => {
+    const normalized = nextHash.startsWith('#') ? nextHash : `#${nextHash}`;
+    if (window.location.hash !== normalized) {
+      window.location.hash = normalized;
+    }
+  }, []);
+
+  // Sync React view state from window.location.hash (for mobile Back/Forward & deep links)
+  const syncFromHash = useCallback(
+    (hashStr: string) => {
+      const clean = hashStr.replace(/^#\/?/, '').trim();
+      if (!clean || clean === 'home') {
+        setCurrentView('home');
+        setActiveCategory(null);
+        setActiveNavTab('home');
+        return;
+      }
+      if (clean.startsWith('product/')) {
+        const prodId = decodeURIComponent(clean.slice('product/'.length));
+        const found = products.find((p) => p.id === prodId);
+        if (found) {
+          setSelectedProduct(found);
+          setCurrentView('product');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        setCurrentView('home');
+        return;
+      }
+      if (clean === 'about') {
+        setCurrentView('about');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (clean.startsWith('policy/')) {
+        const tab = clean.slice('policy/'.length) as PolicyTabType;
+        if (['shipping', 'privacy', 'terms', 'refund', 'faq'].includes(tab)) {
+          setPolicyTab(tab);
+        }
+        setCurrentView('policy');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (clean.startsWith('category/')) {
+        const slug = decodeURIComponent(clean.slice('category/'.length));
+        setCurrentView('home');
+        setActiveCategory(slug);
+        setSearchQuery('');
+        scrollToCatalog();
+      }
+    },
+    [products, scrollToCatalog]
+  );
+
+  // Listen to browser Back / Forward / hashchange events
+  useEffect(() => {
+    if (window.location.hash) {
+      syncFromHash(window.location.hash);
+    }
+    const handleHashChange = () => {
+      syncFromHash(window.location.hash);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [syncFromHash]);
+
+  // Variant-aware Cart operations
+  const handleAddToCart = (product: Product, variant?: PackVariant) => {
+    const chosenVariant = variant || getDefaultVariant(product);
+    const productSnapshot = applyVariantToProduct(product, chosenVariant);
+    const targetKey = `${product.id}__${chosenVariant.label}`;
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find((item) => getCartKey(item) === targetKey);
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id
+          getCartKey(item) === targetKey
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product: productSnapshot, quantity: 1, selectedVariant: chosenVariant }];
     });
   };
 
-  const handleUpdateQuantity = (productId: string, quantity: number) => {
+  const handleUpdateQuantity = (productId: string, quantity: number, variantLabel?: string) => {
     if (quantity <= 0) {
-      handleRemoveFromCart(productId);
+      handleRemoveFromCart(productId, variantLabel);
       return;
     }
     setCart((prev) =>
-      prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
+      prev.map((item) => {
+        const label = item.selectedVariant?.label || item.product.unit;
+        if (item.product.id === productId && (!variantLabel || label === variantLabel)) {
+          return { ...item, quantity };
+        }
+        return item;
+      })
     );
   };
 
-  const handleRemoveFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  const handleRemoveFromCart = (productId: string, variantLabel?: string) => {
+    setCart((prev) =>
+      prev.filter((item) => {
+        const label = item.selectedVariant?.label || item.product.unit;
+        if (item.product.id !== productId) return true;
+        if (variantLabel && label !== variantLabel) return true;
+        return false;
+      })
+    );
+  };
+
+  // 1-Tap Reorder from past orders
+  const handleReorder = (order: Order) => {
+    setCart((prev) => {
+      const next = [...prev];
+      order.items.forEach((ordItem) => {
+        const latestProd = products.find((p) => p.id === ordItem.product.id) || ordItem.product;
+        const chosenVariant = ordItem.selectedVariant || getDefaultVariant(latestProd);
+        const snapshot = applyVariantToProduct(latestProd, chosenVariant);
+        const key = `${latestProd.id}__${chosenVariant.label}`;
+        const existingIdx = next.findIndex((i) => getCartKey(i) === key);
+        if (existingIdx >= 0) {
+          next[existingIdx] = {
+            ...next[existingIdx],
+            quantity: next[existingIdx].quantity + ordItem.quantity,
+          };
+        } else {
+          next.push({
+            product: snapshot,
+            quantity: ordItem.quantity,
+            selectedVariant: chosenVariant,
+          });
+        }
+      });
+      return next;
+    });
+    setIsAuthOpen(false);
+    setIsTrackOrderOpen(false);
+    setIsCartOpen(true);
   };
 
   // Wishlist operations
@@ -215,6 +339,7 @@ export default function App() {
     setActiveNavTab('home');
     setActiveCategory(null);
     setSearchQuery('');
+    pushHash('#/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -239,7 +364,7 @@ export default function App() {
 
   const handleUpdateProductStock = (productId: string, stock: number) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stockQuantity: stock } : p))
+      prev.map((p) => (p.id === productId ? { ...p, stockQuantity: stock, inStock: stock > 0 } : p))
     );
   };
 
@@ -253,6 +378,16 @@ export default function App() {
 
   const handleAddProduct = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
+  };
+
+  const handleUpdateProduct = (productId: string, updates: Partial<Product>) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, ...updates } : p))
+    );
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
   const handleAddProductReview = (productId: string, newRating: number, updatedReviewsCount: number) => {
@@ -273,6 +408,7 @@ export default function App() {
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
+    pushHash(`#/product/${encodeURIComponent(product.id)}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -286,16 +422,30 @@ export default function App() {
     displayProducts = products.filter((p) => p.isNew || p.id === 'prod-15' || p.id === 'prod-19');
   }
 
-  const scrollToCatalog = () => {
-    const el = document.getElementById('catalog-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const navigateHome = () => {
+    setCurrentView('home');
+    setActiveNavTab('home');
+    setActiveCategory(null);
+    pushHash('#/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const anyModalOpen =
+    isCartOpen ||
+    isCheckoutOpen ||
+    isOrderSuccessOpen ||
+    isAdminOpen ||
+    isAuthOpen ||
+    isTrackOrderOpen ||
+    isWishlistOpen ||
+    isQualityOpen;
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
-      {/* 1. Header with Top Alert Bar & Sub-Nav */}
+    <div
+      className={`min-h-screen bg-white text-slate-900 flex flex-col font-sans ${
+        cart.length > 0 && currentView !== 'product' ? 'pb-20 md:pb-0' : ''
+      }`}
+    >
       {/* 1. Header with Top Alert Bar & Sub-Nav */}
       <Header
         searchQuery={searchQuery}
@@ -320,42 +470,55 @@ export default function App() {
           setActiveCategory(slug);
           setSearchQuery('');
           setCurrentView('home');
-          if (slug) scrollToCatalog();
+          if (slug) {
+            pushHash(`#/category/${encodeURIComponent(slug)}`);
+            scrollToCatalog();
+          } else {
+            pushHash('#/');
+          }
         }}
         activeCategory={activeCategory}
         activeTab={currentView === 'policy' ? 'policy' : activeNavTab}
         onSelectTab={(tab) => {
           if (tab === 'policy') {
             setCurrentView('policy');
+            pushHash(`#/policy/${policyTab}`);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'shipping-policy') {
             setPolicyTab('shipping');
             setCurrentView('policy');
+            pushHash('#/policy/shipping');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'privacy-policy') {
             setPolicyTab('privacy');
             setCurrentView('policy');
+            pushHash('#/policy/privacy');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'terms-policy') {
             setPolicyTab('terms');
             setCurrentView('policy');
+            pushHash('#/policy/terms');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'refund-policy') {
             setPolicyTab('refund');
             setCurrentView('policy');
+            pushHash('#/policy/refund');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'faq') {
             setPolicyTab('faq');
             setCurrentView('policy');
+            pushHash('#/policy/faq');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (tab === 'about-us') {
             setCurrentView('about');
+            pushHash('#/about');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
             setCurrentView('home');
             setActiveNavTab(tab);
             setActiveCategory(null);
             setSearchQuery('');
+            pushHash('#/');
             if (tab !== 'home') scrollToCatalog();
           }
         }}
@@ -375,10 +538,7 @@ export default function App() {
             onAddToCart={handleAddToCart}
             onUpdateQuantity={handleUpdateQuantity}
             onToggleWishlist={handleToggleWishlist}
-            onBackToStore={() => {
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onBackToStore={navigateHome}
             onSelectProduct={handleSelectProduct}
             onAddReview={handleAddProductReview}
             onOrderSuccess={handleOrderSuccess}
@@ -386,22 +546,13 @@ export default function App() {
         ) : currentView === 'policy' ? (
           <PolicyPage
             initialTab={policyTab}
-            onBackToHome={() => {
-              setCurrentView('home');
-              setActiveNavTab('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onBackToHome={navigateHome}
           />
         ) : currentView === 'about' ? (
           <AboutUsPage
-            onBackToHome={() => {
-              setCurrentView('home');
-              setActiveNavTab('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onBackToHome={navigateHome}
             onExploreCatalog={() => {
-              setCurrentView('home');
-              setActiveNavTab('home');
+              navigateHome();
               scrollToCatalog();
             }}
           />
@@ -438,13 +589,19 @@ export default function App() {
               />
             )}
 
-            {/* 3. Explore Categories Slider matching Screenshot 2 */}
+            {/* 3. Explore Categories Slider with live counts */}
             <CategoriesSlider
+              products={products}
               activeCategory={activeCategory}
               onSelectCategory={(slug) => {
                 setActiveCategory(slug);
                 setSearchQuery('');
-                if (slug) scrollToCatalog();
+                if (slug) {
+                  pushHash(`#/category/${encodeURIComponent(slug)}`);
+                  scrollToCatalog();
+                } else {
+                  pushHash('#/');
+                }
               }}
             />
 
@@ -514,35 +671,47 @@ export default function App() {
           onSelectCategory={(slug) => {
             setCurrentView('home');
             setActiveCategory(slug);
-            scrollToCatalog();
+            if (slug) {
+              pushHash(`#/category/${encodeURIComponent(slug)}`);
+              scrollToCatalog();
+            } else {
+              pushHash('#/');
+            }
           }}
           onSelectTab={(tab) => {
             if (tab === 'shipping-policy') {
               setPolicyTab('shipping');
               setCurrentView('policy');
+              pushHash('#/policy/shipping');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tab === 'privacy-policy') {
               setPolicyTab('privacy');
               setCurrentView('policy');
+              pushHash('#/policy/privacy');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tab === 'terms-policy') {
               setPolicyTab('terms');
               setCurrentView('policy');
+              pushHash('#/policy/terms');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tab === 'refund-policy') {
               setPolicyTab('refund');
               setCurrentView('policy');
+              pushHash('#/policy/refund');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tab === 'faq') {
               setPolicyTab('faq');
               setCurrentView('policy');
+              pushHash('#/policy/faq');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (tab === 'about-us') {
               setCurrentView('about');
+              pushHash('#/about');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
               setCurrentView('home');
               setActiveNavTab(tab);
+              pushHash('#/');
               scrollToCatalog();
             }
           }}
@@ -550,14 +719,24 @@ export default function App() {
           onOpenPolicy={(tab) => {
             setPolicyTab(tab);
             setCurrentView('policy');
+            pushHash(`#/policy/${tab}`);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           onOpenAboutUs={() => {
             setCurrentView('about');
+            pushHash('#/about');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
       </ScrollReveal>
+
+      {/* Mobile Sticky Bottom Floating Cart Bar */}
+      <MobileStickyCartBar
+        cart={cart}
+        appliedCoupon={appliedCoupon}
+        onOpenCart={() => setIsCartOpen(true)}
+        hidden={anyModalOpen || currentView === 'product'}
+      />
 
       {/* Slide-over Cart Drawer */}
       <CartDrawer
@@ -590,6 +769,7 @@ export default function App() {
         onClose={() => setIsTrackOrderOpen(false)}
         orders={orders}
         currentOrderId={trackingOrderId}
+        onReorder={handleReorder}
       />
 
       {/* Order Placed Successfully Celebration Modal */}
@@ -611,9 +791,9 @@ export default function App() {
         onUpdateProductStock={handleUpdateProductStock}
         onToggleProductStock={handleToggleProductStock}
         onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
+        onDeleteProduct={handleDeleteProduct}
       />
-
-
 
       {/* Saved Wishlist Modal */}
       <WishlistModal
@@ -638,6 +818,7 @@ export default function App() {
           setTrackingOrderId(orders[0]?.orderId);
           setIsTrackOrderOpen(true);
         }}
+        onReorder={handleReorder}
       />
 
       {/* 100% Quality & Purity Modal */}

@@ -35,13 +35,13 @@ export const PRODUCT_REAL_IMAGES: Record<string, string> = {
   // prod-11: Royal Chandan Agarbatti
   'prod-11': 'assets/products/agarbatti.jpg',
   // prod-12: Kesar Kasturi Agarbatti
-  'prod-12': 'assets/products/agarbatti.jpg',
+  'prod-12': 'assets/products/kesar_agarbatti.jpg',
   // prod-13: Herbal Guggul Dhoop Cups
   'prod-13': 'assets/products/dhoop.jpg',
   // prod-14: Pure Bhimseni Kapoor
   'prod-14': 'assets/products/pooja_samagri.jpg',
   // prod-15: Pure Desi Cow Ghee Diya Batti
-  'prod-15': 'assets/products/pooja_samagri.jpg',
+  'prod-15': 'assets/products/diya_batti.jpg',
   // prod-16: Kashmiri Mamra Badam (Almonds)
   'prod-16': 'assets/products/badam.jpg',
   // prod-17: Royal Cashews (Kaju)
@@ -187,12 +187,12 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
       ? 'h-64 sm:h-72 w-full'
       : 'h-44 sm:h-48 w-full';
 
-  const paddingClass = size === 'sm' ? 'p-0' : 'p-1';
+  const paddingClass = size === 'sm' ? 'p-0.5' : size === 'lg' ? 'p-3' : 'p-1.5';
 
   return (
     <div
       ref={containerRef}
-      className={`relative ${containerHeight} ${className} bg-slate-50/70 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center ${paddingClass} transition-all duration-300 group`}
+      className={`relative ${containerHeight} ${className} bg-white rounded-xl overflow-hidden border border-slate-100/90 flex items-center justify-center ${paddingClass} transition-all duration-300 group`}
     >
       {/* Skeleton placeholder shown while waiting for intersection or image decode */}
       {(!isInView || (!isLoaded && !hasError)) && (
@@ -213,7 +213,7 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
               referrerPolicy="no-referrer"
               onLoad={() => setIsLoaded(true)}
               onError={handleImageError}
-              className={`w-full h-full object-cover object-center rounded-lg group-hover:scale-105 transition-all duration-500 ease-out ${
+              className={`w-full h-full object-contain object-center rounded-lg group-hover:scale-105 transition-all duration-500 ease-out ${
                 isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
             />
@@ -226,9 +226,6 @@ export const ProductVisual: React.FC<ProductVisualProps> = ({
           )}
         </>
       )}
-
-      {/* Subtle overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none rounded-lg" />
     </div>
   );
 };

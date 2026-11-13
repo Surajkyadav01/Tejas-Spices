@@ -14,11 +14,13 @@ import {
   X,
   Menu,
   ChevronRight,
-  Package
+  Package,
+  Languages
 } from 'lucide-react';
 import { STORE_INFO, CATEGORIES } from '../data/mockData';
 import { Product } from '../types';
 import tejasLogo from '../assets/logo.png';
+import { useLanguage, CATEGORY_HINDI_NAMES } from '../utils/i18n';
 
 interface HeaderProps {
   searchQuery: string;
@@ -58,6 +60,10 @@ export const Header: React.FC<HeaderProps> = ({
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { lang, toggleLang, t } = useLanguage();
+
+  const getCategoryCount = (slug: string) =>
+    allProducts.filter((p) => p.categorySlug === slug).length;
 
   // Search filtered products for quick dropdown
   const searchResults = searchQuery.trim().length > 1
@@ -71,15 +77,17 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white shadow-xs">
       {/* 1. Top Alert Bar */}
-      {/* 1. Top Alert Bar matching reference screenshot */}
       <div className="bg-emerald-600 text-white text-[11px] sm:text-xs md:text-sm font-medium py-1.5 sm:py-2 px-3 sm:px-4 text-center">
         <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2.5">
           <span className="whitespace-nowrap tracking-tight">
-            Free delivery on orders above ₹{STORE_INFO.freeDeliveryThreshold} in Suriyawan
+            {t(
+              `Free delivery on orders above ₹${STORE_INFO.freeDeliveryThreshold} in Suriyawan`,
+              `सुरियावां में ₹${STORE_INFO.freeDeliveryThreshold} से ऊपर के ऑर्डर पर मुफ़्त होम डिलीवरी`
+            )}
           </span>
           <span className="hidden sm:inline text-emerald-200 select-none">·</span>
           <span className="whitespace-nowrap">
-            Call us:{' '}
+            {t('Call us:', 'कॉल करें:')}{' '}
             <a 
               href={`tel:${STORE_INFO.phone1}`} 
               className="underline hover:text-amber-200 transition-colors font-bold tracking-wide"
@@ -128,7 +136,10 @@ export const Header: React.FC<HeaderProps> = ({
                 onChange={(e) => onSearchChange(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 250)}
-                placeholder="Search for rice, dal, spices, agarbatti, dhoop, dry fruits..."
+                placeholder={t(
+                  'Search for rice, dal, spices, agarbatti, dhoop, dry fruits...',
+                  'चावल, दाल, मसाले, अगरबत्ती, धूप या ड्राई फ्रूट्स खोजें...'
+                )}
                 className="w-full pl-5 pr-14 py-2.5 rounded-full border border-slate-300 focus:outline-hidden focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm text-slate-800 placeholder-slate-400 bg-slate-50/50 hover:bg-white transition-all shadow-2xs"
               />
               <button 
@@ -169,16 +180,19 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Right Action Icons matching reference */}
-          <div className="flex items-center gap-1 sm:gap-3 lg:gap-6 shrink-0">
-            {/* Direct click to call phone */}
-            <a 
-              href={`tel:${STORE_INFO.phone1}`}
-              className="hidden lg:flex items-center gap-2 text-slate-700 hover:text-emerald-600 font-semibold text-sm transition-colors"
+          {/* Right Action Icons */}
+          <div className="flex items-center gap-1 sm:gap-2.5 lg:gap-4 shrink-0">
+            {/* Hindi / English Toggle Pill */}
+            <button
+              type="button"
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-800 text-[11px] sm:text-xs font-extrabold transition-colors cursor-pointer shrink-0"
+              title={lang === 'en' ? 'Switch to Hindi (हिंदी में देखें)' : 'Switch to English'}
+              aria-label="Toggle Language"
             >
-              <Phone className="w-4 h-4 text-emerald-600" />
-              <span>{STORE_INFO.phone1}</span>
-            </a>
+              <Languages className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{lang === 'en' ? 'हिंदी' : 'EN'}</span>
+            </button>
 
             {/* Wishlist */}
             <button
@@ -210,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* User Login - Visible on all devices (Icon on mobile, Pill with label on desktop) */}
+            {/* User Login */}
             <button
               onClick={onOpenAuth}
               className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-full text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 text-sm font-semibold transition-colors cursor-pointer border border-transparent hover:border-emerald-200 shrink-0"
@@ -218,10 +232,10 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label="Login"
             >
               <User className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-600" />
-              <span className="hidden sm:inline">Login</span>
+              <span className="hidden sm:inline">{t('Login', 'लॉगिन')}</span>
             </button>
 
-            {/* Mobile Menu Button - 3-line hamburger icon only, no extra text, perfectly sized */}
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setShowMobileMenu(true)}
               className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-2xs transition-all cursor-pointer shrink-0 ml-0.5"
@@ -240,7 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search rice, spices, agarbatti..."
+              placeholder={t('Search rice, dal, spices, agarbatti...', 'चावल, दाल, मसाले, अगरबत्ती खोजें...')}
               className="w-full pl-4 pr-12 py-2 rounded-full border border-slate-300 text-sm text-slate-800 placeholder-slate-400 bg-slate-50 focus:outline-hidden focus:border-emerald-600"
             />
             <button className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center">
@@ -263,7 +277,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xs transition-colors cursor-pointer"
                 >
                   <LayoutGrid className="w-4 h-4" />
-                  <span>Browse All Categories</span>
+                  <span>{t('Browse All Categories', 'सभी कैटेगरी देखें')}</span>
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showCategoryMenu ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -277,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-emerald-50 ${activeCategory === null ? 'text-emerald-700 font-bold bg-emerald-50/50' : 'text-slate-700'}`}
                     >
-                      <span>All Products</span>
+                      <span>{t('All Products', 'सभी प्रोडक्ट्स')}</span>
                       <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-500">
                         {allProducts.length}
                       </span>
@@ -291,8 +305,8 @@ export const Header: React.FC<HeaderProps> = ({
                         }}
                         className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-emerald-50 ${activeCategory === cat.slug ? 'text-emerald-700 font-bold bg-emerald-50/50' : 'text-slate-700'}`}
                       >
-                        <span>{cat.name}</span>
-                        <span className="text-xs text-slate-400">({cat.itemCount})</span>
+                        <span>{lang === 'hi' ? CATEGORY_HINDI_NAMES[cat.slug] || cat.name : cat.name}</span>
+                        <span className="text-xs text-slate-400">({getCategoryCount(cat.slug)})</span>
                       </button>
                     ))}
                   </div>
@@ -309,7 +323,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className={`flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer ${activeTab === 'home' && activeCategory === null ? 'text-emerald-600' : ''}`}
                 >
                   <Home className="w-4 h-4" />
-                  <span>Home</span>
+                  <span>{t('Home', 'होम')}</span>
                 </button>
 
                 <button
@@ -317,7 +331,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className={`flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer ${activeTab === 'hot-deals' ? 'text-emerald-600' : ''}`}
                 >
                   <Flame className="w-4 h-4 text-orange-500" />
-                  <span>Hot deals</span>
+                  <span>{t('Hot deals', 'हॉट डील्स')}</span>
                 </button>
 
                 <button
@@ -325,7 +339,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className={`flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer ${activeTab === 'promotions' ? 'text-emerald-600' : ''}`}
                 >
                   <Tag className="w-4 h-4 text-blue-500" />
-                  <span>Promotions</span>
+                  <span>{t('Promotions', 'ऑफर्स')}</span>
                 </button>
 
                 <button
@@ -333,7 +347,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className={`flex items-center gap-1.5 hover:text-emerald-600 transition-colors cursor-pointer ${activeTab === 'new-products' ? 'text-emerald-600' : ''}`}
                 >
                   <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>New products</span>
+                  <span>{t('New products', 'नया स्टॉक')}</span>
                 </button>
               </nav>
             </div>
@@ -603,25 +617,28 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                   </button>
 
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => {
-                        onSelectCategory(cat.slug);
-                        setShowMobileMenu(false);
-                      }}
-                      className={`w-full text-left p-2 text-xs flex items-center justify-between rounded-lg cursor-pointer ${
-                        activeCategory === cat.slug
-                          ? 'bg-emerald-100 text-emerald-800 font-bold'
-                          : 'text-slate-700 hover:bg-emerald-50'
-                      }`}
-                    >
-                      <span>{cat.name}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {cat.itemCount} items
-                      </span>
-                    </button>
-                  ))}
+                  {CATEGORIES.map((cat) => {
+                    const count = getCategoryCount(cat.slug);
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          onSelectCategory(cat.slug);
+                          setShowMobileMenu(false);
+                        }}
+                        className={`w-full text-left p-2 text-xs flex items-center justify-between rounded-lg cursor-pointer ${
+                          activeCategory === cat.slug
+                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                            : 'text-slate-700 hover:bg-emerald-50'
+                        }`}
+                      >
+                        <span>{lang === 'hi' ? CATEGORY_HINDI_NAMES[cat.slug] || cat.name : cat.name}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {count} {t('items', 'आइटम')}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

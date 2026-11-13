@@ -76,9 +76,9 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
                         onClose();
                       }
                     }}
-                    className="w-14 h-14 bg-slate-50 rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0 cursor-pointer"
+                    className="w-16 h-16 bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 cursor-pointer"
                   >
-                    <ProductVisual product={product} size="sm" />
+                    <ProductVisual product={product} size="sm" priority={true} className="!border-0" />
                   </div>
 
                   <div

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, MapPin, X } from 'lucide-react';
+import { Check, MapPin, X, MessageCircle, ShieldCheck } from 'lucide-react';
 import { Order } from '../types';
+import { buildWhatsAppOrderFromOrder } from '../utils/whatsapp';
+import { useLanguage } from '../utils/i18n';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -235,6 +237,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   onBackToHome,
   onTrackOrder,
 }) => {
+  const { t } = useLanguage();
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Trigger celebration shower and sound strictly once when order modal opens
@@ -251,6 +254,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
   const firstItem = order.items[0]?.product;
   const itemsCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const whatsappSlipUrl = buildWhatsAppOrderFromOrder(order);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
@@ -370,47 +374,70 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-slate-700">
-            <span>Payment Method:</span>
-            <span className="font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md">
-              {order.paymentMethod === 'COD' ? 'Cash on Delivery (नकद)' : 'Instant UPI'}
+            <span>{t('Payment Method:', 'भुगतान तरीका:')}</span>
+            <span className="font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+              {order.paymentMethod === 'COD'
+                ? t('Cash on Delivery (नकद)', 'कैश ऑन डिलीवरी (नकद)')
+                : order.paymentVerified
+                ? `UPI Verified ✓`
+                : 'Instant UPI'}
+              {order.paymentVerified && <ShieldCheck className="w-3 h-3 text-emerald-600" />}
             </span>
           </div>
 
+          {order.upiRef && (
+            <div className="flex items-center justify-between text-slate-500 text-[11px]">
+              <span>UPI Ref / UTR:</span>
+              <span className="font-mono font-bold text-slate-800">{order.upiRef}</span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-slate-700">
-            <span>Amount to Pay:</span>
+            <span>{t('Amount to Pay:', 'कुल राशि:')}</span>
             <span className="font-mono font-black text-sm text-slate-900">
               ₹{order.total}
             </span>
           </div>
 
           <div className="flex items-center justify-between text-slate-500 text-[11px] pt-1 border-t border-slate-200/60">
-            <span>Delivery Location:</span>
+            <span>{t('Delivery Location:', 'डिलीवरी पता:')}</span>
             <span className="font-medium text-slate-800 truncate max-w-[170px]">
               {order.customer.address}, {order.customer.city}
             </span>
           </div>
         </div>
 
-        {/* 4. Action Buttons matching Attachment 2 */}
-        <div className="space-y-3 mt-6">
+        {/* 4. Action Buttons */}
+        <div className="space-y-2.5 mt-5">
           {/* Button 1: Back to Home (Solid Green) */}
           <button
             type="button"
             onClick={onBackToHome}
             className="w-full bg-[#059669] hover:bg-[#047857] active:bg-[#065f46] text-white font-extrabold py-3.5 px-6 rounded-2xl text-base shadow-md transition-all cursor-pointer text-center flex items-center justify-center"
           >
-            Back to Home
+            {t('Back to Home', 'होम पेज पर जाएं')}
           </button>
 
           {/* Button 2: Track Order (Outline Green with Pin icon) */}
           <button
             type="button"
             onClick={onTrackOrder}
-            className="w-full bg-white hover:bg-emerald-50 active:bg-emerald-100 border-2 border-[#059669] text-[#059669] font-extrabold py-3.5 px-6 rounded-2xl text-base transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            className="w-full bg-white hover:bg-emerald-50 active:bg-emerald-100 border-2 border-[#059669] text-[#059669] font-extrabold py-3 px-6 rounded-2xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
-            <MapPin className="w-5 h-5 text-[#059669]" />
-            <span>Track Order</span>
+            <MapPin className="w-4 h-4 text-[#059669]" />
+            <span>{t('Track Order', 'ऑर्डर ट्रैक करें')}</span>
           </button>
+
+          {/* Button 3: Send Order Slip on WhatsApp */}
+          <a
+            href={whatsappSlipUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/40 text-emerald-900 font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5"
+          >
+            <MessageCircle className="w-4 h-4 text-[#16a34a]" />
+            <span>{t('Send Order Slip on WhatsApp', 'WhatsApp पर ऑर्डर स्लिप भेजें')}</span>
+          </a>
         </div>
       </div>
     </div>
